@@ -3,6 +3,7 @@ const mysql = require('mysql2');
 const multer = require('multer');
 const path = require('path');
 const cors = require('cors');
+const fs = require('fs');
 
 const app = express();
 const port = 3000;
@@ -117,39 +118,93 @@ app.post('/api/google-login', (req, res) => {
 
     // NOTA: Aquí deberías validar el token con la librería de Google,
     // pero para que funcione la redirección YA MISMO, simulamos que es válido.
-    
+
     console.log("🔔 Usuario autenticado con Google");
-    
+
     // Respondemos al HTML que todo salió bien
-    res.json({ 
-        success: true, 
+    res.json({
+        success: true,
         role: 'usuario', // O tu lógica para detectar admins
-        message: "¡Login correcto!" 
+        message: "¡Login correcto!"
     });
 });
 
 // 2. Login Tradicional (Correo y Contraseña)
 app.post('/api/login', (req, res) => {
     const { email, password } = req.body;
-    
+
     // Consulta simple a la base de datos
     const sql = "SELECT * FROM usuarios WHERE email = ? AND password = ?";
-    
+
     db.query(sql, [email, password], (err, results) => {
         if (err) {
             return res.status(500).json({ success: false, message: "Error en BD" });
         }
-        
+
         if (results.length > 0) {
             const usuario = results[0];
-            res.json({ 
-                success: true, 
+            res.json({
+                success: true,
                 role: usuario.role || 'usuario',
-                message: "Bienvenido" 
+                message: "Bienvenido"
             });
         } else {
             res.json({ success: false, message: "Credenciales incorrectas" });
         }
+    });
+});
+
+// --- ENDPOINT: ELIMINAR RECETA ---
+app.delete('/api/recetas/:id', (req, res) => {
+    const { id } = req.params;
+
+    // 1. Primero buscamos la ruta de la imagen para borrar el archivo físico
+    db.query('SELECT imagen_url FROM recetas WHERE id = ?', [id], (err, results) => {
+        if (err) return res.status(500).send(err);
+        if (results.length === 0) return res.status(404).send('Receta no encontrada');
+
+        const imagePath = path.join(__dirname, results[0].imagen_url);
+
+        // 2. Borramos el archivo físico si existe
+        if (fs.existsSync(imagePath)) {
+            fs.unlinkSync(imagePath);
+        }
+
+        // 3. Borramos el registro de la DB
+        db.query('DELETE FROM recetas WHERE id = ?', [id], (err) => {
+            if (err) return res.status(500).send(err);
+            res.send({ message: 'Receta eliminada correctamente' });
+        });
+    });
+});
+
+// --- ENDPOINT: ACTUALIZAR RECETA ---
+// Usamos upload.single('imagen') por si el admin cambia la foto
+app.put('/api/recetas/:id', upload.single('imagen'), (req, res) => {
+    const { id } = req.params;
+    const { nombre, descripcion, ingredientes, instrucciones } = req.body;
+    let query = "UPDATE recetas SET nombre=?, descripcion=?, ingredientes=?, instrucciones=? WHERE id=?";
+    let params = [nombre, descripcion, ingredientes, instrucciones, id];
+
+    // Si el admin subió una imagen nueva
+    if (req.file) {
+        // Buscamos la imagen vieja para borrarla
+        db.query('SELECT imagen_url FROM recetas WHERE id = ?', [id], (err, results) => {
+            if (!err && results.length > 0) {
+                const oldPath = path.join(__dirname, results[0].imagen_url);
+                if (fs.existsSync(oldPath)) fs.unlinkSync(oldPath);
+            }
+        });
+
+        // Actualizamos el query para incluir la nueva ruta
+        query = "UPDATE recetas SET nombre=?, descripcion=?, ingredientes=?, instrucciones=?, imagen_url=? WHERE id=?";
+        const newImagePath = `uploads/${req.file.filename}`;
+        params = [nombre, descripcion, ingredientes, instrucciones, newImagePath, id];
+    }
+
+    db.query(query, params, (err) => {
+        if (err) return res.status(500).send(err);
+        res.send({ message: 'Receta actualizada correctamente' });
     });
 });
 

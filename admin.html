@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Panel Admin - CoockNet</title>
+    <link rel="stylesheet" href="styless.css"> <style>
+        .admin-table { width: 90%; margin: 20px auto; border-collapse: collapse; }
+        .admin-table th, .admin-table td { padding: 12px; border: 1px solid #ddd; text-align: left; }
+        .btn-edit { background: #ffc107; cursor: pointer; }
+        .btn-delete { background: #dc3545; color: white; cursor: pointer; }
+        /* Estilo simple para el Modal de Edición */
+        #editModal { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); 
+                     background: white; padding: 20px; border: 2px solid #333; z-index: 1000; width: 400px; }
+    </style>
+</head>
+<body>
+    <h1>Gestión de Recetas</h1>
+    <table class="admin-table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Nombre</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody id="listaRecetasAdmin">
+            </tbody>
+    </table>
+
+    <div id="editModal">
+        <h3>Editar Receta</h3>
+        <form id="editForm">
+            <input type="hidden" id="editId">
+            <input type="text" id="editNombre" placeholder="Nombre" required><br><br>
+            <textarea id="editDescripcion" placeholder="Descripción"></textarea><br><br>
+            <input type="file" id="editImagen" accept="image/*"><br>
+            <small>Dejar vacío si no quieres cambiar la foto</small><br><br>
+            <button type="submit">Guardar Cambios</button>
+            <button type="button" onclick="cerrarModal()">Cancelar</button>
+        </form>
+    </div>
+
+    <script>
+        // Cargar recetas al inicio
+        async function cargarRecetas() {
+            const res = await fetch('http://localhost:3000/api/recetas');
+            const recetas = await res.json();
+            const tabla = document.getElementById('listaRecetasAdmin');
+            tabla.innerHTML = recetas.map(r => `
+                <tr>
+                    <td>${r.id}</td>
+                    <td>${r.nombre}</td>
+                    <td>
+                        <button class="btn-edit" onclick='abrirEditar(${JSON.stringify(r)})'>✏️ Editar</button>
+                        <button class="btn-delete" onclick="eliminarReceta(${r.id})">🗑️ Borrar</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        async function eliminarReceta(id) {
+            if (!confirm('¿Seguro que quieres borrar esta receta?')) return;
+            await fetch(`http://localhost:3000/api/recetas/${id}`, { method: 'DELETE' });
+            cargarRecetas();
+        }
+
+        function abrirEditar(receta) {
+            document.getElementById('editId').value = receta.id;
+            document.getElementById('editNombre').value = receta.nombre;
+            document.getElementById('editDescripcion').value = receta.descripcion;
+            document.getElementById('editModal').style.display = 'block';
+        }
+
+        function cerrarModal() { document.getElementById('editModal').style.display = 'none'; }
+
+        document.getElementById('editForm').onsubmit = async (e) => {
+            e.preventDefault();
+            const id = document.getElementById('editId').value;
+            const formData = new FormData();
+            formData.append('nombre', document.getElementById('editNombre').value);
+            formData.append('descripcion', document.getElementById('editDescripcion').value);
+            
+            const fileInput = document.getElementById('editImagen');
+            if (fileInput.files[0]) formData.append('imagen', fileInput.files[0]);
+
+            await fetch(`http://localhost:3000/api/recetas/${id}`, {
+                method: 'PUT',
+                body: formData
+            });
+
+            cerrarModal();
+            cargarRecetas();
+        };
+
+        cargarRecetas();
+    </script>
+</body>
+</html>

@@ -91,7 +91,7 @@
             });
             const result = await res.json();
             if (result.success) {
-                window.location.href = result.role === 'admin' ? 'recetas.html' : 'index.html';
+                window.location.href = result.role === 'admin' ? 'admin.html' : 'index.html';
             } else { alert(result.message); }
         });
 
@@ -104,7 +104,7 @@
             });
             const result = await res.json();
             if (result.success) {
-                window.location.href = result.role === 'admin' ? 'recetas.html' : 'index.html';
+                window.location.href = 'index.html';
             }
         }
     </script>
