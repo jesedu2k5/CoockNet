@@ -1,165 +1,150 @@
 <!DOCTYPE html>
 <html lang="es">
-
 <head>
     <meta charset="UTF-8">
-    <title>Subir Receta - CookNet</title>
-    <link rel="stylesheet" href="styles.css">
-    <style>
-        .upload-card {
-            max-width: 600px;
-            margin: 50px auto;
-            padding: 2rem;
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Subir Receta - CoockNet</title>
+    <link rel="stylesheet" href="styless.css">
+  <style>
+        /* Estilos específicos para los nuevos controles de la actividad */
+        .controls-container {
             background: white;
+            padding: 20px;
             border-radius: 10px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            margin: 20px auto;
+            max-width: 1200px;
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            align-items: center;
         }
 
-        .form-group {
-            margin-bottom: 15px;
+        .search-box {
+            flex: 2;
+            min-width: 300px;
         }
 
-        .form-group label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: bold;
+        .filter-box {
+            flex: 1;
+            min-width: 200px;
         }
 
-        .form-control {
+        .form-control-custom {
             width: 100%;
             padding: 10px;
-            border: 1px solid #ccc;
+            border: 1px solid #ddd;
             border-radius: 5px;
-            box-sizing: border-box;
+            font-size: 1rem;
         }
 
-        .btn-upload {
-            width: 100%;
-            padding: 12px;
-            background-color: #e67e22;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-weight: bold;
+        .recipe-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
         }
 
-        .btn-upload:hover {
-            background-color: #d35400;
+        /* Estilo para el mensaje de "vacío" */
+        .empty-msg {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 50px;
+            color: #666;
+            font-style: italic;
         }
     </style>
 </head>
-
 <body>
-    <nav class="navbar"> <a href="index.html" class="navbar-logo">Cook<span>Net</span></a>
-    </nav>
 
-    <div class="upload-card">
-        <h2>Compartir Nueva Receta</h2>
-        <form id="uploadForm">
+    <div class="container">
+        <h1>🍳 Subir Nueva Receta</h1>
+        
+        <form id="recetaForm" enctype="multipart/form-data">
+            
             <div class="form-group">
-                <label>Título de la Receta</label>
-                <input type="text" id="titulo" class="form-control" required>
-            </div>
-
-            <div class="form-group">
-                <label>Descripción Corta</label>
-                <textarea id="descripcion" class="form-control" rows="3" required></textarea>
-            </div>
-
-            <div style="display: flex; gap: 15px;">
-                <div class="form-group" style="flex: 1;">
-                    <label>Categoría</label>
-                    <select id="categoria" class="form-control">
-                        <option value="desayunos">Desayunos</option>
-                        <option value="comidas">Comidas</option>
-                        <option value="cenas">Cenas</option>
-                        <option value="postres">Postres</option>
-                    </select>
-                </div>
-                <div class="form-group" style="flex: 1;">
-                    <label>Dificultad</label>
-                    <select id="dificultad" class="form-control">
-                        <option value="facil">Fácil</option>
-                        <option value="media">Media</option>
-                        <option value="dificil">Difícil</option>
-                    </select>
-                </div>
+                <label for="nombre">Nombre de la Receta:</label>
+                <input type="text" id="nombre" name="nombre" placeholder="Ej: Tacos al Pastor" required>
             </div>
 
             <div class="form-group">
-                <label>Tiempo de preparación (minutos)</label>
-                <input type="number" id="tiempo" class="form-control" placeholder="Ej: 30" required>
+                <label for="categoria">Categoría:</label>
+                <select id="categoria" name="categoria">
+                    <option value="Desayuno">Desayuno</option>
+                    <option value="Comida">Comida</option>
+                    <option value="Cena">Cena</option>
+                    <option value="Postre">Postre</option>
+                </select>
             </div>
 
             <div class="form-group">
-                <label>Imagen de la Receta</label>
-                <input type="file" id="imagen" class="form-control" accept="image/*" required>
+                <label for="ingredientes">Ingredientes:</label>
+                <textarea id="ingredientes" name="ingredientes" rows="4" placeholder="Lista los ingredientes..." required></textarea>
             </div>
 
-            <button type="submit" class="btn-upload">Publicar Receta</button>
+            <div class="form-group">
+                <label for="instrucciones">Instrucciones/Pasos:</label>
+                <textarea id="instrucciones" name="instrucciones" rows="4" placeholder="¿Cómo se prepara?" required></textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="imagen">Foto de la Receta:</label>
+                <input type="file" id="imagen" name="imagen" accept="image/*" required>
+            </div>
+
+            <button type="submit">Subir Receta</button>
         </form>
+
+        <div id="mensajeExito" class="mensaje exito"></div>
+        <div id="mensajeError" class="mensaje error"></div>
     </div>
 
-<script type="module">
-    // IMPORTANTE: Asegúrate de usar ./js/... para que el navegador encuentre el archivo
-    import { DataService } from './js/data.js';
-    import { UIService } from './js/ui.js';
+    <script>
+        const form = document.getElementById('recetaForm');
+        const msgExito = document.getElementById('mensajeExito');
+        const msgError = document.getElementById('mensajeError');
 
-    document.addEventListener('DOMContentLoaded', () => {
-        const form = document.getElementById('uploadForm');
-        
-        // 1. RECUPERACIÓN AUTOMÁTICA
-        const borrador = DataService.getDraft();
-        if (borrador) {
-            document.getElementById('titulo').value = borrador.titulo || '';
-            document.getElementById('descripcion').value = borrador.descripcion || '';
-        }
-
-        // 2. GUARDAR BORRADOR MIENTRAS ESCRIBE
-        form.addEventListener('input', () => {
-            DataService.saveDraft({
-                titulo: document.getElementById('titulo').value,
-                descripcion: document.getElementById('descripcion').value
-            });
-        });
-
-        // 3. ENVÍO AL SERVIDOR CON MENSAJES DINÁMICOS
         form.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            
-            const btn = form.querySelector('button[type="submit"]');
-            btn.disabled = true; // Evitar múltiples clics
-            btn.textContent = "Subiendo...";
+            e.preventDefault(); // Evita que la página se recargue
 
+            // Ocultar mensajes previos
+            msgExito.style.display = 'none';
+            msgError.style.display = 'none';
+
+            // Crear FormData con los datos del formulario
             const formData = new FormData(form);
 
             try {
-                const response = await fetch('/api/subir-receta', {
+                const response = await fetch('http://localhost:3000/api/recetas', {
                     method: 'POST',
                     body: formData
                 });
 
-                const result = await response.json();
+                const data = await response.json();
 
-                if (result.success) {
-                    UIService.mostrarAlerta("✅ ¡Éxito! Receta publicada correctamente.", "exito", form);
-                    DataService.clearDraft();
-                    // Redirigir después de mostrar el mensaje
-                    setTimeout(() => window.location.href = 'indexr.html', 2000);
+                if (data.success) {
+                    // MENSJE DE ÉXITO
+                    msgExito.innerText = data.message;
+                    msgExito.style.display = 'block';
+                    form.reset(); // Limpiar formulario
+                    
+                    // Opcional: Redirigir a la página principal después de 2 segundos
+                    setTimeout(() => {
+                         window.location.href = 'index.html'; 
+                    }, 2000);
                 } else {
-                    UIService.mostrarAlerta("❌ Error: " + result.message, "error", form);
-                    btn.disabled = false;
-                    btn.textContent = "Compartir Receta";
+                    // MENSAJE DE ERROR DEL SERVIDOR
+                    throw new Error(data.message);
                 }
+
             } catch (error) {
-                UIService.mostrarAlerta("❌ Error de conexión con el servidor.", "error", form);
-                btn.disabled = false;
-                btn.textContent = "Compartir Receta";
+                console.error('Error:', error);
+                msgError.innerText = error.message || 'Ocurrió un error al conectar con el servidor.';
+                msgError.style.display = 'block';
             }
         });
-    });
-</script>
+    </script>
 </body>
-
 </html>

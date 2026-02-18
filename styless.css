@@ -1,0 +1,272 @@
+/* === ESTILOS GENERALES === */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f4f4f9; /* Fondo gris claro suave */
+    margin: 0;
+    padding: 0;
+    color: #333;
+}
+
+/* === CONTENEDOR PRINCIPAL === */
+.container {
+    max-width: 600px;
+    margin: 50px auto; /* Centrado horizontalmente */
+    background: #fff;
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1); /* Sombra suave */
+}
+
+h1 {
+    text-align: center;
+    color: #2c3e50;
+    margin-bottom: 30px;
+    font-size: 2rem;
+}
+
+/* === ESTILOS DEL FORMULARIO === */
+.form-group {
+    margin-bottom: 20px;
+}
+
+label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: #555;
+}
+
+/* Campos de texto, select y textarea */
+input[type="text"],
+select,
+textarea {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 16px;
+    box-sizing: border-box; /* Para que el padding no rompa el ancho */
+    transition: border-color 0.3s ease;
+    font-family: inherit; /* Heredar fuente en textareas */
+}
+
+input[type="text"]:focus,
+select:focus,
+textarea:focus {
+    border-color: #e67e22; /* Color naranja al escribir (puedes cambiarlo) */
+    outline: none;
+    box-shadow: 0 0 5px rgba(230, 126, 34, 0.2);
+}
+
+/* Input de archivo (Imagen) */
+input[type="file"] {
+    background: #f9f9f9;
+    padding: 10px;
+    border: 1px dashed #ccc;
+    border-radius: 8px;
+    width: 100%;
+    cursor: pointer;
+}
+
+/* === BOTÓN DE ENVÍO === */
+button[type="submit"] {
+    width: 100%;
+    padding: 14px;
+    background-color: #e67e22; /* Color principal (Naranja comida) */
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 18px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.1s;
+    margin-top: 10px;
+}
+
+button[type="submit"]:hover {
+    background-color: #d35400; /* Naranja más oscuro al pasar el mouse */
+}
+
+button[type="submit"]:active {
+    transform: scale(0.98); /* Pequeño efecto de clic */
+}
+
+/* === MENSAJES DE ALERTA (Éxito / Error) === */
+.mensaje {
+    padding: 15px;
+    margin-top: 20px;
+    border-radius: 8px;
+    display: none; /* Oculto por defecto */
+    font-weight: bold;
+    text-align: center;
+    animation: fadeIn 0.5s ease;
+}
+
+.exito {
+    background-color: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+.error {
+    background-color: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+
+/* Animación para que los mensajes aparezcan suavemente */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* === RESPONSIVE (Móvil) === */
+@media (max-width: 480px) {
+    .container {
+        margin: 20px;
+        padding: 20px;
+    }
+
+    h1 {
+        font-size: 1.5rem;
+    }
+}
+/* =========================================
+   ESTILOS DE LA CUADRÍCULA Y TARJETAS
+   ========================================= */
+
+/* 1. Contenedor Grid (La rejilla) */
+.recipe-grid {
+    display: grid;
+    /* Crea columnas automáticas de mínimo 280px de ancho */
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 30px; /* Espacio entre tarjetas */
+    padding: 20px;
+}
+
+/* 2. Tarjeta Individual */
+.recipe-card {
+    background: #fff;
+    border-radius: 15px; /* Bordes redondeados */
+    overflow: hidden; /* Para que la imagen no se salga de los bordes */
+    box-shadow: 0 4px 15px rgba(0,0,0,0.08); /* Sombra suave */
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    display: flex;
+    flex-direction: column; /* Organiza el contenido en columna */
+}
+
+/* Efecto al pasar el mouse sobre la tarjeta */
+.recipe-card:hover {
+    transform: translateY(-8px); /* Sube un poquito */
+    box-shadow: 0 12px 25px rgba(0,0,0,0.15); /* Sombra más fuerte */
+}
+
+/* 3. Imagen de la Receta */
+.card-image {
+    position: relative;
+    height: 200px; /* Altura fija para uniformidad */
+    overflow: hidden;
+}
+
+.card-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover; /* Recorta la imagen para llenar el espacio sin deformarse */
+    transition: transform 0.5s ease;
+}
+
+/* Zoom suave en la imagen al hacer hover */
+.recipe-card:hover .card-image img {
+    transform: scale(1.05);
+}
+
+/* Etiqueta de Categoría (flotante sobre la imagen) */
+.card-category {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    background-color: rgba(255, 255, 255, 0.95);
+    color: #e67e22; /* Color naranja temático */
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+/* 4. Cuerpo de la Tarjeta */
+.card-content {
+    padding: 20px;
+    flex-grow: 1; /* Ocupa el espacio restante */
+    display: flex;
+    flex-direction: column;
+}
+
+.card-content h3 {
+    margin: 0 0 10px 0;
+    color: #2c3e50;
+    font-size: 1.3rem;
+    font-weight: 700;
+}
+
+/* Previsualización de ingredientes */
+.ingredients-preview {
+    color: #666;
+    font-size: 0.9rem;
+    line-height: 1.5;
+    margin-bottom: 20px;
+    flex-grow: 1;
+}
+
+/* Badges (Tiempo, Dificultad) */
+.badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-weight: 600;
+    color: #555;
+    background-color: #f8f9fa !important; /* Forzamos el gris claro */
+    border: 1px solid #eee;
+}
+
+/* 5. Botón de Acción */
+.btn-ver {
+    width: 100%;
+    padding: 12px;
+    background-color: #2c3e50; /* Azul oscuro elegante */
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    margin-top: auto; /* Empuja el botón al final de la tarjeta */
+}
+
+.btn-ver:hover {
+    background-color: #e67e22; /* Cambia a naranja al pasar el mouse */
+}
+
+/* Mensajes de vacío/carga */
+.empty-msg, .loading-msg {
+    grid-column: 1 / -1; /* Ocupa todo el ancho */
+    text-align: center;
+    padding: 40px;
+    font-size: 1.2rem;
+    color: #7f8c8d;
+    background: #fff;
+    border-radius: 10px;
+    border: 2px dashed #ddd;
+}
+
+/* Ajuste Responsive para móviles */
+@media (max-width: 600px) {
+    .recipe-grid {
+        grid-template-columns: 1fr; /* Una sola columna en celular */
+        padding: 15px;
+    }
+}
