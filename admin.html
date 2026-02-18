@@ -1,19 +1,240 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <title>Panel Admin - CoockNet</title>
-    <link rel="stylesheet" href="styless.css"> <style>
-        .admin-table { width: 90%; margin: 20px auto; border-collapse: collapse; }
-        .admin-table th, .admin-table td { padding: 12px; border: 1px solid #ddd; text-align: left; }
-        .btn-edit { background: #ffc107; cursor: pointer; }
-        .btn-delete { background: #dc3545; color: white; cursor: pointer; }
-        /* Estilo simple para el Modal de Edición */
-        #editModal { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); 
-                     background: white; padding: 20px; border: 2px solid #333; z-index: 1000; width: 400px; }
+    <link rel="stylesheet" href="styless.css">
+    <style>
+        /* Importar la misma fuente que el index si la usas, o una limpia */
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap');
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #f4f7f6;
+            margin: 0;
+            color: #333;
+        }
+
+        h1 {
+            background-color: #2c3e50;
+            color: white;
+            margin: 0;
+            padding: 30px;
+            text-align: center;
+            font-weight: 600;
+        }
+
+        /* --- TABLA DE ADMINISTRACIÓN --- */
+        .admin-table {
+            width: 90%;
+            max-width: 1000px;
+            margin: 40px auto;
+            border-collapse: separate;
+            border-spacing: 0;
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .admin-table thead {
+            background-color: #2c3e50;
+            color: white;
+        }
+
+        .admin-table th {
+            padding: 18px;
+            text-transform: uppercase;
+            font-size: 0.85rem;
+            letter-spacing: 1px;
+        }
+
+        .admin-table td {
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .admin-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .admin-table tr:hover {
+            background-color: #f9f9f9;
+        }
+
+        /* --- BOTONES DE ACCIÓN --- */
+        .btn-edit,
+        .btn-delete {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .btn-edit {
+            background-color: #ffc107;
+            color: #000;
+            margin-right: 8px;
+        }
+
+        .btn-edit:hover {
+            background-color: #e0a800;
+            transform: scale(1.05);
+        }
+
+        .btn-delete {
+            background-color: #e74c3c;
+            color: white;
+        }
+
+        .btn-delete:hover {
+            background-color: #c0392b;
+            transform: scale(1.05);
+        }
+
+        /* --- MODAL DE EDICIÓN --- */
+        #editModal {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            z-index: 1000;
+            width: 90%;
+            max-width: 450px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            border: none;
+        }
+
+        #editModal h3 {
+            margin-top: 0;
+            color: #2c3e50;
+            border-bottom: 2px solid #27ae60;
+            padding-bottom: 10px;
+        }
+
+        /* --- FORMULARIO DENTRO DEL MODAL --- */
+        #editForm input[type="text"],
+        #editForm textarea {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            box-sizing: border-box;
+            /* Importante para que no se salga del modal */
+            font-family: inherit;
+        }
+
+        #editForm button[type="submit"] {
+            background-color: #27ae60;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        #editForm button[type="button"] {
+            background-color: #95a5a6;
+            color: white;
+            margin-left: 10px;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        /* Overlay para oscurecer el fondo cuando el modal esté abierto */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 999;
+        }
+
+        /* Estilo del botón de cerrar sesión */
+        .btn-logout {
+            background-color: transparent;
+            color: #e74c3c;
+            border: 1px solid #e74c3c;
+            padding: 6px 15px;
+            border-radius: 5px;
+            text-decoration: none;
+            font-size: 0.85rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-logout:hover {
+            background-color: #e74c3c;
+            color: white;
+            box-shadow: 0 0 10px rgba(231, 76, 60, 0.3);
+        }
+
+        /* Barra de navegación superior para el admin */
+        .admin-nav {
+            background-color: #1a252f;
+            /* Un tono más oscuro que el header */
+            padding: 10px 5%;
+            color: white;
+        }
+
+        .nav-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .user-welcome {
+            font-size: 0.9rem;
+            font-weight: 300;
+        }
+
+        /* Estilo del botón de cerrar sesión */
+        .btn-logout {
+            background-color: transparent;
+            color: #e74c3c;
+            border: 1px solid #e74c3c;
+            padding: 6px 15px;
+            border-radius: 5px;
+            text-decoration: none;
+            font-size: 0.85rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-logout:hover {
+            background-color: #e74c3c;
+            color: white;
+            box-shadow: 0 0 10px rgba(231, 76, 60, 0.3);
+        }
     </style>
 </head>
+
 <body>
+    <div class="admin-nav">
+        <div class="nav-content">
+            <span class="user-welcome">Panel de Control - CookNet</span>
+            <a href="login.html" class="btn-logout">Cerrar Sesión</a>
+        </div>
+    </div>
     <h1>Gestión de Recetas</h1>
     <table class="admin-table">
         <thead>
@@ -24,39 +245,124 @@
             </tr>
         </thead>
         <tbody id="listaRecetasAdmin">
-            </tbody>
+        </tbody>
     </table>
 
     <div id="editModal">
-        <h3>Editar Receta</h3>
+        <h3>🛠️ Editar Receta</h3>
         <form id="editForm">
             <input type="hidden" id="editId">
-            <input type="text" id="editNombre" placeholder="Nombre" required><br><br>
-            <textarea id="editDescripcion" placeholder="Descripción"></textarea><br><br>
-            <input type="file" id="editImagen" accept="image/*"><br>
-            <small>Dejar vacío si no quieres cambiar la foto</small><br><br>
-            <button type="submit">Guardar Cambios</button>
-            <button type="button" onclick="cerrarModal()">Cancelar</button>
+
+            <label>Nombre de la receta:</label>
+            <input type="text" id="editNombre" placeholder="Ej. Tacos al pastor" required>
+
+            <label>Categoría:</label>
+            <select id="editCategoria" class="form-control-custom" style="margin-bottom: 15px; width: 100%;">
+                <option value="desayunos">Desayunos</option>
+                <option value="comidas">Comidas</option>
+                <option value="cenas">Cenas</option>
+                <option value="postres">Postres</option>
+            </select>
+
+            <label>Ingredientes (separados por comas):</label>
+            <textarea id="editIngredientes" placeholder="Harina, huevos, leche..." rows="3"></textarea>
+
+            <label>Instrucciones de preparación:</label>
+            <textarea id="editInstrucciones" placeholder="Paso 1: Mezclar todo..." rows="4"></textarea>
+
+            <label>Imagen de la receta:</label>
+            <input type="file" id="editImagen" accept="image/*">
+            <small style="display: block; margin-bottom: 15px; color: #666;">
+                Sube una nueva foto para reemplazar la actual.
+            </small>
+
+            <div style="display: flex; gap: 10px;">
+                <button type="submit" class="btn-primary" style="flex: 1;">Guardar Cambios</button>
+                <button type="button" onclick="cerrarModal()" class="btn-login"
+                    style="flex: 1; border: 1px solid #ccc; color: #333;">Cancelar</button>
+            </div>
         </form>
     </div>
 
     <script>
-        // Cargar recetas al inicio
+        let recetasLocales = [];
+
         async function cargarRecetas() {
-            const res = await fetch('http://localhost:3000/api/recetas');
-            const recetas = await res.json();
-            const tabla = document.getElementById('listaRecetasAdmin');
-            tabla.innerHTML = recetas.map(r => `
+            try {
+                const res = await fetch('http://localhost:3000/api/recetas');
+                recetasLocales = await res.json();
+                const tabla = document.getElementById('listaRecetasAdmin');
+                tabla.innerHTML = recetasLocales.map(r => `
                 <tr>
                     <td>${r.id}</td>
                     <td>${r.nombre}</td>
                     <td>
-                        <button class="btn-edit" onclick='abrirEditar(${JSON.stringify(r)})'>✏️ Editar</button>
+                        <button class="btn-edit" onclick="prepararEdicion(${r.id})">✏️ Editar</button>
                         <button class="btn-delete" onclick="eliminarReceta(${r.id})">🗑️ Borrar</button>
                     </td>
                 </tr>
             `).join('');
+            } catch (error) {
+                console.error("Error al cargar:", error);
+            }
         }
+
+        function prepararEdicion(id) {
+            const receta = recetasLocales.find(r => r.id === id);
+            if (receta) abrirEditar(receta);
+        }
+
+        function abrirEditar(receta) {
+            document.getElementById('editId').value = receta.id;
+            document.getElementById('editNombre').value = receta.nombre;
+            document.getElementById('editCategoria').value = receta.categoria || 'comidas';
+            document.getElementById('editIngredientes').value = receta.ingredientes || '';
+            document.getElementById('editInstrucciones').value = receta.instrucciones || '';
+
+            document.getElementById('editModal').style.display = 'block';
+            // Si tienes el overlay, actívalo aquí:
+            // document.getElementById('modalOverlay').style.display = 'block';
+        }
+
+        function cerrarModal() {
+            document.getElementById('editModal').style.display = 'none';
+            // document.getElementById('modalOverlay').style.display = 'none';
+        }
+
+        // UN SOLO EVENTO ONSUBMIT (El motor de guardado)
+        document.getElementById('editForm').onsubmit = async (e) => {
+            e.preventDefault();
+            const id = document.getElementById('editId').value;
+
+            const formData = new FormData();
+            formData.append('nombre', document.getElementById('editNombre').value);
+            formData.append('categoria', document.getElementById('editCategoria').value);
+            formData.append('ingredientes', document.getElementById('editIngredientes').value);
+            formData.append('instrucciones', document.getElementById('editInstrucciones').value);
+
+            const fileInput = document.getElementById('editImagen');
+            if (fileInput.files[0]) {
+                formData.append('imagen', fileInput.files[0]);
+            }
+
+            try {
+                const response = await fetch(`http://localhost:3000/api/recetas/${id}`, {
+                    method: 'PUT',
+                    body: formData
+                });
+
+                if (response.ok) {
+                    alert("✅ Cambios guardados correctamente.");
+                    cerrarModal();
+                    cargarRecetas();
+                } else {
+                    alert("❌ Error en el servidor al actualizar.");
+                }
+            } catch (error) {
+                console.error("Error en la petición:", error);
+                alert("❌ No se pudo conectar con el servidor.");
+            }
+        };
 
         async function eliminarReceta(id) {
             if (!confirm('¿Seguro que quieres borrar esta receta?')) return;
@@ -64,35 +370,8 @@
             cargarRecetas();
         }
 
-        function abrirEditar(receta) {
-            document.getElementById('editId').value = receta.id;
-            document.getElementById('editNombre').value = receta.nombre;
-            document.getElementById('editDescripcion').value = receta.descripcion;
-            document.getElementById('editModal').style.display = 'block';
-        }
-
-        function cerrarModal() { document.getElementById('editModal').style.display = 'none'; }
-
-        document.getElementById('editForm').onsubmit = async (e) => {
-            e.preventDefault();
-            const id = document.getElementById('editId').value;
-            const formData = new FormData();
-            formData.append('nombre', document.getElementById('editNombre').value);
-            formData.append('descripcion', document.getElementById('editDescripcion').value);
-            
-            const fileInput = document.getElementById('editImagen');
-            if (fileInput.files[0]) formData.append('imagen', fileInput.files[0]);
-
-            await fetch(`http://localhost:3000/api/recetas/${id}`, {
-                method: 'PUT',
-                body: formData
-            });
-
-            cerrarModal();
-            cargarRecetas();
-        };
-
         cargarRecetas();
     </script>
 </body>
+
 </html>

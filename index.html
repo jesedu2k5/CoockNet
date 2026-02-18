@@ -56,6 +56,59 @@
             color: #666;
             font-style: italic;
         }
+
+        /* --- BOTÓN COMPARTIR RECETA --- */
+        .btn-primary {
+            background-color: #27ae60;
+            /* Verde éxito */
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            border: none;
+            display: inline-flex;
+            align-items: center;
+        }
+
+        .btn-primary:hover {
+            background-color: #219150;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(39, 174, 96, 0.3);
+        }
+
+        /* --- BOTÓN CERRAR SESIÓN --- */
+        .btn-login {
+            background-color: transparent;
+            color: #e74c3c;
+            /* Rojo suave */
+            padding: 10px 20px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            border: 2px solid #e74c3c;
+            transition: all 0.3s ease;
+        }
+
+        .btn-login:hover {
+            background-color: #e74c3c;
+            color: white;
+            box-shadow: 0 4px 12px rgba(231, 76, 60, 0.2);
+        }
+
+        /* Responsive: Ajuste para celulares */
+        @media (max-width: 600px) {
+            .nav-links {
+                gap: 8px;
+            }
+
+            .btn-primary,
+            .btn-login {
+                padding: 8px 12px;
+                font-size: 0.9rem;
+            }
+        }
     </style>
 </head>
 
@@ -64,15 +117,15 @@
     <nav class="navbar">
         <a href="indexr.html" class="navbar-logo">Cook<span>Net</span></a>
         <div class="nav-links">
-            <a href="subir_receta.html" class="btn-primary">➕ Compartir Receta</a>
+            <a href="subir_receta.html" class="btn-primary">Compartir Receta</a>
             <a href="login.html" class="btn-login">Cerrar Sesión</a>
         </div>
     </nav>
 
-    <header style="text-align: center; padding: 40px 20px; background-color: #2c3e50; color: white;">
-        <h1>Panel de Gestión de Recetas</h1>
-        <p>Busca, filtra y organiza tus registros en esta sesión.</p>
-    </header>
+<header style="text-align: center; padding: 20px 10px; background-color: #2c3e50; color: white;">
+    <h1 style="margin: 0; font-size: 1.8rem;">Recetas</h1>
+    <p style="margin: 5px 0 0; font-size: 0.9rem; opacity: 0.9;">Busca, filtra y organiza recetas de todo el mundo</p>
+</header>
 
     <div class="container">
         <section class="controls-container">

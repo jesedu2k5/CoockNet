@@ -4,7 +4,7 @@ const multer = require('multer');
 const path = require('path');
 const cors = require('cors');
 const fs = require('fs');
-
+const bcrypt = require('bcrypt');
 const app = express();
 const port = 3000;
 
@@ -104,6 +104,35 @@ app.get('/api/recetas', (req, res) => {
         res.json(results);
     });
 });
+//Registro de cuenta
+app.post('/api/register', async (req, res) => {
+    const { username, email, password } = req.body;
+
+    // Validación básica
+    if (!username || !email || !password) {
+        return res.status(400).json({ success: false, message: "Faltan datos" });
+    }
+
+    try {
+        // 1. Encriptamos la contraseña (hash + salt automático)
+        const saltRounds = 10;
+        const hashedPassword = await bcrypt.hash(password, saltRounds);
+
+        // 2. Guardamos el usuario con la contraseña encriptada
+        const sql = "INSERT INTO usuarios (username, email, password) VALUES (?, ?, ?)";
+
+        db.query(sql, [username, email, hashedPassword], (err, result) => {
+            if (err) {
+                console.error(err);
+                return res.status(500).json({ success: false, message: "Error al registrar usuario (posiblemente el correo ya existe)" });
+            }
+            res.json({ success: true, message: "¡Usuario registrado correctamente!" });
+        });
+
+    } catch (error) {
+        res.status(500).json({ success: false, message: "Error en el servidor" });
+    }
+});
 
 // --- RUTAS DE LOGIN (Pégalo en server.js) ---
 
@@ -133,23 +162,36 @@ app.post('/api/google-login', (req, res) => {
 app.post('/api/login', (req, res) => {
     const { email, password } = req.body;
 
-    // Consulta simple a la base de datos
-    const sql = "SELECT * FROM usuarios WHERE email = ? AND password = ?";
+    // 1. Buscamos al usuario SOLO por el email
+    const sql = "SELECT * FROM usuarios WHERE email = ?";
 
-    db.query(sql, [email, password], (err, results) => {
+    db.query(sql, [email], async (err, results) => {
         if (err) {
             return res.status(500).json({ success: false, message: "Error en BD" });
         }
 
-        if (results.length > 0) {
-            const usuario = results[0];
+        if (results.length === 0) {
+            // No se encontró el email
+            return res.json({ success: false, message: "Usuario o contraseña incorrectos" });
+        }
+
+        const usuario = results[0];
+
+        // 2. Comparamos la contraseña texto plano vs el hash en la BD
+        // bcrypt.compare(contraseña_escrita, contraseña_encriptada_en_bd)
+        const match = await bcrypt.compare(password, usuario.password);
+
+        if (match) {
+            // Contraseña correcta
             res.json({
                 success: true,
                 role: usuario.role || 'usuario',
+                username: usuario.username, // Opcional: enviar el nombre
                 message: "Bienvenido"
             });
         } else {
-            res.json({ success: false, message: "Credenciales incorrectas" });
+            // Contraseña incorrecta
+            res.json({ success: false, message: "Usuario o contraseña incorrectos" });
         }
     });
 });
@@ -158,53 +200,72 @@ app.post('/api/login', (req, res) => {
 app.delete('/api/recetas/:id', (req, res) => {
     const { id } = req.params;
 
-    // 1. Primero buscamos la ruta de la imagen para borrar el archivo físico
-    db.query('SELECT imagen_url FROM recetas WHERE id = ?', [id], (err, results) => {
-        if (err) return res.status(500).send(err);
-        if (results.length === 0) return res.status(404).send('Receta no encontrada');
+    // 1. Buscamos la ruta de la imagen usando el nombre de columna correcto ('imagen')
+    db.query('SELECT imagen FROM recetas WHERE id = ?', [id], (err, results) => {
+        if (err) {
+            console.error("❌ Error al buscar receta para borrar:", err);
+            return res.status(500).json({ error: err.message });
+        }
+        
+        if (results.length === 0) return res.status(404).json({ message: 'Receta no encontrada' });
 
-        const imagePath = path.join(__dirname, results[0].imagen_url);
+        // 2. Limpiamos la ruta de la imagen
+        // Si en la BD se guarda como "/uploads/foto.jpg", quitamos el primer "/" para que path.join funcione bien
+        const dbPath = results[0].imagen;
+        if (dbPath) {
+            const relativePath = dbPath.startsWith('/') ? dbPath.substring(1) : dbPath;
+            const imagePath = path.join(__dirname, relativePath);
 
-        // 2. Borramos el archivo físico si existe
-        if (fs.existsSync(imagePath)) {
-            fs.unlinkSync(imagePath);
+            // Borramos el archivo físico si existe
+            if (fs.existsSync(imagePath)) {
+                try {
+                    fs.unlinkSync(imagePath);
+                    console.log("🗑️ Archivo físico eliminado:", imagePath);
+                } catch (unlinkErr) {
+                    console.error("⚠️ No se pudo borrar el archivo físico:", unlinkErr);
+                }
+            }
         }
 
         // 3. Borramos el registro de la DB
-        db.query('DELETE FROM recetas WHERE id = ?', [id], (err) => {
-            if (err) return res.status(500).send(err);
-            res.send({ message: 'Receta eliminada correctamente' });
+        db.query('DELETE FROM recetas WHERE id = ?', [id], (deleteErr) => {
+            if (deleteErr) return res.status(500).json({ error: deleteErr.message });
+            res.json({ message: 'Receta eliminada correctamente' });
         });
     });
 });
 
-// --- ENDPOINT: ACTUALIZAR RECETA ---
-// Usamos upload.single('imagen') por si el admin cambia la foto
+// --- ENDPOINT: ACTUALIZAR RECETA  ---
 app.put('/api/recetas/:id', upload.single('imagen'), (req, res) => {
     const { id } = req.params;
-    const { nombre, descripcion, ingredientes, instrucciones } = req.body;
-    let query = "UPDATE recetas SET nombre=?, descripcion=?, ingredientes=?, instrucciones=? WHERE id=?";
-    let params = [nombre, descripcion, ingredientes, instrucciones, id];
+    // Extraemos los campos que vienen del formulario (asegúrate que 'categoria' esté incluido)
+    const { nombre, categoria, ingredientes, instrucciones } = req.body;
 
-    // Si el admin subió una imagen nueva
+    let query;
+    let params;
+
     if (req.file) {
-        // Buscamos la imagen vieja para borrarla
-        db.query('SELECT imagen_url FROM recetas WHERE id = ?', [id], (err, results) => {
-            if (!err && results.length > 0) {
-                const oldPath = path.join(__dirname, results[0].imagen_url);
-                if (fs.existsSync(oldPath)) fs.unlinkSync(oldPath);
-            }
-        });
-
-        // Actualizamos el query para incluir la nueva ruta
-        query = "UPDATE recetas SET nombre=?, descripcion=?, ingredientes=?, instrucciones=?, imagen_url=? WHERE id=?";
-        const newImagePath = `uploads/${req.file.filename}`;
-        params = [nombre, descripcion, ingredientes, instrucciones, newImagePath, id];
+        // 1. Si subió imagen nueva, actualizamos TODO incluyendo la columna 'imagen'
+        query = "UPDATE recetas SET nombre=?, categoria=?, ingredientes=?, instrucciones=?, imagen=? WHERE id=?";
+        const newImagePath = `/uploads/${req.file.filename}`;
+        params = [nombre, categoria, ingredientes, instrucciones, newImagePath, id];
+    } else {
+        // 2. Si NO subió imagen, actualizamos solo los textos
+        query = "UPDATE recetas SET nombre=?, categoria=?, ingredientes=?, instrucciones=? WHERE id=?";
+        params = [nombre, categoria, ingredientes, instrucciones, id];
     }
 
-    db.query(query, params, (err) => {
-        if (err) return res.status(500).send(err);
-        res.send({ message: 'Receta actualizada correctamente' });
+    db.query(query, params, (err, result) => {
+        if (err) {
+            console.error("❌ Error en SQL al actualizar:", err);
+            return res.status(500).json({ success: false, message: err.message });
+        }
+
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ success: false, message: "No se encontró la receta" });
+        }
+
+        res.json({ success: true, message: 'Receta actualizada correctamente' });
     });
 });
 
