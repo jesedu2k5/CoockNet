@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SafeCook - Gestión de Recetas</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <nav class="navbar">
+        <a href="index.html" class="navbar-logo">Safe<span>Cook</span></a>
+        <div class="nav-links">
+            <a href="subir_receta.html" class="btn-add">➕ Nueva Receta</a>
+        </div>
+    </nav>
+
+    <main class="container">
+        <header class="main-header">
+            <h1>Mis Recetas</h1>
+            <p>Gestiona, busca y filtra tus creaciones culinarias localmente.</p>
+        </header>
+
+        <section class="controls-section">
+            <div class="search-box">
+                <input type="text" id="buscarReceta" placeholder="🔍 Buscar por título...">
+            </div>
+            
+            <div class="filter-group">
+                <label for="filtrarCategoria">Categoría:</label>
+                <select id="filtrarCategoria">
+                    <option value="todas">Todas</option>
+                    <option value="desayunos">Desayunos</option>
+                    <option value="comidas">Comidas</option>
+                    <option value="cenas">Cenas</option>
+                    <option value="postres">Postres</option>
+                </select>
+            </div>
+
+            <div class="filter-group">
+                <label for="ordenarPor">Ordenar por:</label>
+                <select id="ordenarPor">
+                    <option value="recientes">Más recientes</option>
+                    <option value="nombre">Nombre (A-Z)</option>
+                    <option value="tiempo">Menor tiempo</option>
+                </select>
+            </div>
+        </section>
+
+        <div id="listaRecetas" class="recetas-grid">
+            </div>
+    </main>
+
+    <script type="module" src="js/app.js"></script>
+</body>
+</html>

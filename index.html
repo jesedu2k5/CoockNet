@@ -1,34 +1,89 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SafeCook - Gestión de Recetas</title>
-    <link rel="stylesheet" href="css/styles.css">
+    <title>CookNet - Mis Recetas</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        /* Estilos específicos para los nuevos controles de la actividad */
+        .controls-container {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px auto;
+            max-width: 1200px;
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            align-items: center;
+        }
+
+        .search-box {
+            flex: 2;
+            min-width: 300px;
+        }
+
+        .filter-box {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .form-control-custom {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 1rem;
+        }
+
+        .recipe-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* Estilo para el mensaje de "vacío" */
+        .empty-msg {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 50px;
+            color: #666;
+            font-style: italic;
+        }
+    </style>
 </head>
+
 <body>
+
     <nav class="navbar">
-        <a href="index.html" class="navbar-logo">Safe<span>Cook</span></a>
+        <a href="indexr.html" class="navbar-logo">Cook<span>Net</span></a>
         <div class="nav-links">
-            <a href="subir_receta.html" class="btn-add">➕ Nueva Receta</a>
+            <a href="subir_receta.html" class="btn-primary">➕ Compartir Receta</a>
+            <a href="login.html" class="btn-login">Cerrar Sesión</a>
         </div>
     </nav>
 
-    <main class="container">
-        <header class="main-header">
-            <h1>Mis Recetas</h1>
-            <p>Gestiona, busca y filtra tus creaciones culinarias localmente.</p>
-        </header>
+    <header style="text-align: center; padding: 40px 20px; background-color: #2c3e50; color: white;">
+        <h1>Panel de Gestión de Recetas</h1>
+        <p>Busca, filtra y organiza tus registros en esta sesión.</p>
+    </header>
 
-        <section class="controls-section">
+    <div class="container">
+        <section class="controls-container">
             <div class="search-box">
-                <input type="text" id="buscarReceta" placeholder="🔍 Buscar por título...">
+                <input type="text" id="buscarReceta" class="form-control-custom"
+                    placeholder="🔍 Buscar por nombre de receta...">
             </div>
-            
-            <div class="filter-group">
-                <label for="filtrarCategoria">Categoría:</label>
-                <select id="filtrarCategoria">
-                    <option value="todas">Todas</option>
+
+            <div class="filter-box">
+                <select id="filtrarCategoria" class="form-control-custom">
+                    <option value="todas">Todas las categorías</option>
                     <option value="desayunos">Desayunos</option>
                     <option value="comidas">Comidas</option>
                     <option value="cenas">Cenas</option>
@@ -36,20 +91,19 @@
                 </select>
             </div>
 
-            <div class="filter-group">
-                <label for="ordenarPor">Ordenar por:</label>
-                <select id="ordenarPor">
+            <div class="filter-box">
+                <select id="ordenarPor" class="form-control-custom">
                     <option value="recientes">Más recientes</option>
                     <option value="nombre">Nombre (A-Z)</option>
-                    <option value="tiempo">Menor tiempo</option>
+                    <option value="tiempo">Menos tiempo</option>
                 </select>
             </div>
         </section>
 
-        <div id="listaRecetas" class="recetas-grid">
-            </div>
-    </main>
-
+        <div id="listaRecetas" class="recipe-grid"></div>
+    </div>
     <script type="module" src="js/app.js"></script>
+
 </body>
+
 </html>

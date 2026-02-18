@@ -1,17 +1,55 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <title>Subir Receta - CookNet</title>
-    <link rel="stylesheet" href="styles.css"> <style>
-        .upload-card { max-width: 600px; margin: 50px auto; padding: 2rem; background: white; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
-        .form-group { margin-bottom: 15px; }
-        .form-group label { display: block; margin-bottom: 5px; font-weight: bold; }
-        .form-control { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; }
-        .btn-upload { width: 100%; padding: 12px; background-color: #e67e22; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; }
-        .btn-upload:hover { background-color: #d35400; }
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .upload-card {
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 2rem;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+
+        .btn-upload {
+            width: 100%;
+            padding: 12px;
+            background-color: #e67e22;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .btn-upload:hover {
+            background-color: #d35400;
+        }
     </style>
 </head>
+
 <body>
     <nav class="navbar"> <a href="index.html" class="navbar-logo">Cook<span>Net</span></a>
     </nav>
@@ -23,7 +61,7 @@
                 <label>Título de la Receta</label>
                 <input type="text" id="titulo" class="form-control" required>
             </div>
-            
+
             <div class="form-group">
                 <label>Descripción Corta</label>
                 <textarea id="descripcion" class="form-control" rows="3" required></textarea>
@@ -63,37 +101,65 @@
         </form>
     </div>
 
-    <script>
-        document.getElementById('uploadForm').addEventListener('submit', async (e) => {
+<script type="module">
+    // IMPORTANTE: Asegúrate de usar ./js/... para que el navegador encuentre el archivo
+    import { DataService } from './js/data.js';
+    import { UIService } from './js/ui.js';
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const form = document.getElementById('uploadForm');
+        
+        // 1. RECUPERACIÓN AUTOMÁTICA
+        const borrador = DataService.getDraft();
+        if (borrador) {
+            document.getElementById('titulo').value = borrador.titulo || '';
+            document.getElementById('descripcion').value = borrador.descripcion || '';
+        }
+
+        // 2. GUARDAR BORRADOR MIENTRAS ESCRIBE
+        form.addEventListener('input', () => {
+            DataService.saveDraft({
+                titulo: document.getElementById('titulo').value,
+                descripcion: document.getElementById('descripcion').value
+            });
+        });
+
+        // 3. ENVÍO AL SERVIDOR CON MENSAJES DINÁMICOS
+        form.addEventListener('submit', async (e) => {
             e.preventDefault();
             
-            const formData = new FormData();
-            // Agregamos todos los campos que el servidor espera recibir en req.body
-            formData.append('titulo', document.getElementById('titulo').value);
-            formData.append('descripcion', document.getElementById('descripcion').value);
-            formData.append('categoria', document.getElementById('categoria').value);
-            formData.append('dificultad', document.getElementById('dificultad').value);
-            formData.append('tiempo', document.getElementById('tiempo').value);
-            formData.append('imagen', document.getElementById('imagen').files[0]);
+            const btn = form.querySelector('button[type="submit"]');
+            btn.disabled = true; // Evitar múltiples clics
+            btn.textContent = "Subiendo...";
+
+            const formData = new FormData(form);
 
             try {
                 const response = await fetch('/api/subir-receta', {
                     method: 'POST',
-                    body: formData // Enviamos como FormData para procesar el archivo con Multer
+                    body: formData
                 });
 
                 const result = await response.json();
+
                 if (result.success) {
-                    alert("✅ Receta publicada correctamente.");
-                    window.location.href = 'recetas.html'; 
+                    UIService.mostrarAlerta("✅ ¡Éxito! Receta publicada correctamente.", "exito", form);
+                    DataService.clearDraft();
+                    // Redirigir después de mostrar el mensaje
+                    setTimeout(() => window.location.href = 'indexr.html', 2000);
                 } else {
-                    alert("❌ Error: " + result.message);
+                    UIService.mostrarAlerta("❌ Error: " + result.message, "error", form);
+                    btn.disabled = false;
+                    btn.textContent = "Compartir Receta";
                 }
             } catch (error) {
-                console.error("Error al subir:", error);
-                alert("❌ No se pudo conectar con el servidor.");
+                UIService.mostrarAlerta("❌ Error de conexión con el servidor.", "error", form);
+                btn.disabled = false;
+                btn.textContent = "Compartir Receta";
             }
         });
-    </script>
+    });
+</script>
 </body>
+
 </html>
