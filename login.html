@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Ingresar - CookNet</title>
+    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .login-card {
+            border-top: 5px solid #e67e22;
+            max-width: 400px;
+            margin: 80px auto;
+            padding: 2rem;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+
+        .btn-submit {
+            width: 100%;
+            padding: 12px;
+            background-color: #2c3e50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .btn-submit:hover {
+            background-color: #e67e22;
+        }
+    </style>
+</head>
+
+<body>
+    <nav class="navbar"> <a href="index.html" class="navbar-logo">Cook<span>Net</span></a>
+    </nav>
+
+    <div class="login-card">
+        <h2>Iniciar Sesión</h2>
+        <form id="loginForm">
+            <input type="email" id="email" class="form-control" placeholder="Correo electrónico" required>
+            <input type="password" id="password" class="form-control" placeholder="Contraseña" required>
+
+            <div style="display: flex; justify-content: center; margin-bottom: 15px;">
+                <div class="g-recaptcha" data-sitekey="6LcV8W0sAAAAABFC7jD6VVfBR5anhlHrE4LhY3e3"></div>
+            </div>
+
+            <button type="submit" class="btn-submit">Ingresar</button>
+        </form>
+
+        <div style="margin: 20px 0; color: #ccc;">O</div>
+
+        <div id="g_id_onload" data-client_id="1012990864122-9so0869juj8fqbv7tan76ji9952g9k5e.apps.googleusercontent.com"
+            data-callback="handleCredentialResponse"></div>
+        <div class="g_id_signin" data-type="standard"></div>
+
+        <p style="margin-top: 20px; font-size: 0.9rem;">
+            ¿No tienes cuenta? <a href="registro.html" style="color: #e67e22; text-decoration: none;">Regístrate</a>
+        </p>
+    </div>
+
+    <script>
+        // Manejo de Login Tradicional
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const captcha = grecaptcha.getResponse();
+            if (!captcha) return alert("Por favor, marca el captcha.");
+
+            const res = await fetch('/api/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    email: document.getElementById('email').value,
+                    password: document.getElementById('password').value,
+                    captchaResponse: captcha
+                })
+            });
+            const result = await res.json();
+            if (result.success) {
+                window.location.href = result.role === 'admin' ? 'recetas.html' : 'index.html';
+            } else { alert(result.message); }
+        });
+
+        // Manejo de Login Google
+        async function handleCredentialResponse(response) {
+            const res = await fetch('/api/google-login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ token: response.credential })
+            });
+            const result = await res.json();
+            if (result.success) {
+                window.location.href = result.role === 'admin' ? 'recetas.html' : 'index.html';
+            }
+        }
+    </script>
+</body>
+
+</html>

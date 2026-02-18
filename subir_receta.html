@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Subir Receta - CookNet</title>
+    <link rel="stylesheet" href="styles.css"> <style>
+        .upload-card { max-width: 600px; margin: 50px auto; padding: 2rem; background: white; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 5px; font-weight: bold; }
+        .form-control { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; }
+        .btn-upload { width: 100%; padding: 12px; background-color: #e67e22; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; }
+        .btn-upload:hover { background-color: #d35400; }
+    </style>
+</head>
+<body>
+    <nav class="navbar"> <a href="index.html" class="navbar-logo">Cook<span>Net</span></a>
+    </nav>
+
+    <div class="upload-card">
+        <h2>Compartir Nueva Receta</h2>
+        <form id="uploadForm">
+            <div class="form-group">
+                <label>Título de la Receta</label>
+                <input type="text" id="titulo" class="form-control" required>
+            </div>
+            
+            <div class="form-group">
+                <label>Descripción Corta</label>
+                <textarea id="descripcion" class="form-control" rows="3" required></textarea>
+            </div>
+
+            <div style="display: flex; gap: 15px;">
+                <div class="form-group" style="flex: 1;">
+                    <label>Categoría</label>
+                    <select id="categoria" class="form-control">
+                        <option value="desayunos">Desayunos</option>
+                        <option value="comidas">Comidas</option>
+                        <option value="cenas">Cenas</option>
+                        <option value="postres">Postres</option>
+                    </select>
+                </div>
+                <div class="form-group" style="flex: 1;">
+                    <label>Dificultad</label>
+                    <select id="dificultad" class="form-control">
+                        <option value="facil">Fácil</option>
+                        <option value="media">Media</option>
+                        <option value="dificil">Difícil</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Tiempo de preparación (minutos)</label>
+                <input type="number" id="tiempo" class="form-control" placeholder="Ej: 30" required>
+            </div>
+
+            <div class="form-group">
+                <label>Imagen de la Receta</label>
+                <input type="file" id="imagen" class="form-control" accept="image/*" required>
+            </div>
+
+            <button type="submit" class="btn-upload">Publicar Receta</button>
+        </form>
+    </div>
+
+    <script>
+        document.getElementById('uploadForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const formData = new FormData();
+            // Agregamos todos los campos que el servidor espera recibir en req.body
+            formData.append('titulo', document.getElementById('titulo').value);
+            formData.append('descripcion', document.getElementById('descripcion').value);
+            formData.append('categoria', document.getElementById('categoria').value);
+            formData.append('dificultad', document.getElementById('dificultad').value);
+            formData.append('tiempo', document.getElementById('tiempo').value);
+            formData.append('imagen', document.getElementById('imagen').files[0]);
+
+            try {
+                const response = await fetch('/api/subir-receta', {
+                    method: 'POST',
+                    body: formData // Enviamos como FormData para procesar el archivo con Multer
+                });
+
+                const result = await response.json();
+                if (result.success) {
+                    alert("✅ Receta publicada correctamente.");
+                    window.location.href = 'recetas.html'; 
+                } else {
+                    alert("❌ Error: " + result.message);
+                }
+            } catch (error) {
+                console.error("Error al subir:", error);
+                alert("❌ No se pudo conectar con el servidor.");
+            }
+        });
+    </script>
+</body>
+</html>

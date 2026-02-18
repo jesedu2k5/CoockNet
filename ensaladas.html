@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ensaladas - SafeCook</title>
+    <style>
+        /* --- ESTILOS GLOBALES (Mismo tema) --- */
+        :root {
+            --primary-color: #2c3e50;
+            --accent-color: #e67e22;
+            --text-white: #ffffff;
+            --nav-height: 60px;
+        }
+
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f4f4;
+            padding-top: var(--nav-height);
+        }
+
+        /* --- NAVBAR --- */
+        .navbar {
+            background-color: var(--primary-color);
+            height: var(--nav-height);
+            width: 100%;
+            position: fixed; top: 0; left: 0; z-index: 1000;
+            display: flex; justify-content: space-between; align-items: center; padding: 0 2rem; box-sizing: border-box;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+        .navbar-logo { color: var(--text-white); font-weight: bold; text-decoration: none; font-size: 1.5rem; }
+        .navbar-logo span { color: var(--accent-color); }
+        .nav-menu { list-style: none; display: flex; padding: 0; margin: 0; }
+        .nav-item { margin-left: 1.5rem; }
+        .nav-link { color: var(--text-white); text-decoration: none; transition: 0.3s; }
+        .nav-link:hover { color: var(--accent-color); }
+
+        /* --- BREADCRUMBS --- */
+        .breadcrumb-container {
+            background-color: #f8f9fa;
+            padding: 15px 2rem;
+            border-bottom: 1px solid #e9ecef;
+        }
+        .breadcrumb { display: flex; list-style: none; padding: 0; margin: 0; }
+        .breadcrumb-item { font-size: 0.9rem; color: #6c757d; display: flex; align-items: center; }
+        .breadcrumb-item + .breadcrumb-item::before { content: "/"; padding: 0 10px; color: #ccc; }
+        .breadcrumb-item a { color: var(--accent-color); text-decoration: none; }
+        .breadcrumb-item.active { color: var(--primary-color); font-weight: bold; }
+
+        /* --- CONTENIDO --- */
+        .category-header {
+            text-align: center;
+            padding: 3rem 1rem;
+            background-color: white;
+            margin-bottom: 2rem;
+            border-bottom: 1px solid #ddd;
+        }
+        .category-icon { font-size: 4rem; display: block; margin-bottom: 10px; }
+        h1 { margin: 0; color: var(--primary-color); }
+        p.subtitle { color: #666; max-width: 600px; margin: 10px auto; }
+
+        /* GRID */
+        .main-container { padding: 0 2rem 4rem 2rem; max-width: 1200px; margin: 0 auto; }
+        
+        .recipes-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+        }
+
+        .recipe-card {
+            background: white; border-radius: 8px; overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1); border: 1px solid #ddd;
+            display: flex; flex-direction: column; transition: transform 0.3s;
+        }
+        .recipe-card:hover { transform: translateY(-5px); }
+        
+        .card-img-placeholder {
+            height: 150px; background-color: #d4efdf; /* Verde claro para ensaladas */
+            display: flex; align-items: center; justify-content: center; font-size: 3rem; color: #27ae60;
+        }
+
+        .card-body { padding: 15px; flex-grow: 1; display: flex; flex-direction: column; }
+        .card-title { margin: 0 0 10px; color: var(--primary-color); }
+        .card-desc { font-size: 0.9rem; color: #666; flex-grow: 1; }
+        
+        .btn-card {
+            display: block; text-align: center; background-color: var(--primary-color);
+            color: white; padding: 10px; margin-top: 15px; border-radius: 5px;
+            text-decoration: none; font-weight: bold; transition: 0.3s;
+        }
+        .btn-card:hover { background-color: var(--accent-color); }
+
+    </style>
+</head>
+<body>
+<!-- Barra de navegación -->
+    <nav class="navbar">
+        <a href="index.html" class="navbar-logo">Safe<span>Cook</span></a>
+        <ul class="nav-menu">
+            <li class="nav-item"><a href="index.html" class="nav-link">Inicio</a></li>
+            <li class="nav-item"><a href="recetas.html" class="nav-link">Recetas</a></li>
+            <li class="nav-item"><a href="login.html" class="nav-link" style="border: 1px solid var(--accent-color); padding: 5px 15px; border-radius: 20px;">Ingresar</a></li>
+        </ul>
+    </nav>
+
+    <nav aria-label="breadcrumb" class="breadcrumb-container">
+        <ol class="breadcrumb" id="breadcrumb-list"></ol>
+    </nav>
+
+    <header class="category-header">
+        <span class="category-icon">🥗</span>
+        <h1>Ensaladas Frescas</h1>
+        <p class="subtitle">Opciones saludables, ligeras y llenas de sabor. Perfectas para acompañar o como plato fuerte.</p>
+    </header>
+<!-- Zona de recetas -->
+    <main class="main-container">
+        <div class="recipes-grid">
+            
+            <div class="recipe-card">
+                <div class="card-img-placeholder">🥬</div>
+                <div class="card-body">
+                    <h3 class="card-title">Ensalada César</h3>
+                    <p class="card-desc">Lechuga romana, parmesano y aderezo original.</p>
+                    <a href="ensalada.html" class="btn-card">Ver Receta</a>
+                </div>
+            </div>
+
+            <div class="recipe-card">
+                <div class="card-img-placeholder">🍅</div>
+                <div class="card-body">
+                    <h3 class="card-title">Caprese Italiana</h3>
+                    <p class="card-desc">Tomate, mozzarella fresca y albahaca con balsámico.</p>
+                    <a href="fail.html" class="btn-card">Ver receta</a>
+                </div>
+            </div>
+
+            <div class="recipe-card">
+                <div class="card-img-placeholder">🥒</div>
+                <div class="card-body">
+                    <h3 class="card-title">Ensalada Griega</h3>
+                    <p class="card-desc">Pepino, aceitunas kalamata, queso feta y orégano.</p>
+                    <a href="fail.html" class="btn-card">Ver receta</a>
+                </div>
+            </div>
+
+            <div class="recipe-card">
+                <div class="card-img-placeholder">🍓</div>
+                <div class="card-body">
+                    <h3 class="card-title">Mix de Frutos Rojos</h3>
+                    <p class="card-desc">Fresas, moras y frambuesas con miel y yogurt.</p>
+                    <a href="fail.html" class="btn-card">Ver receta</a>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <script>
+        // Breadcrumbs: Inicio > Recetas > Ensaladas (Actual)
+        const pagePath = [
+            { name: "Inicio", url: "index.html" },
+            { name: "Recetas", url: "recetas.html" },
+            { name: "Ensaladas", url: null } // Página actual
+        ];
+
+        const list = document.getElementById('breadcrumb-list');
+        
+        pagePath.forEach((step, index) => {
+            const li = document.createElement('li');
+            li.classList.add('breadcrumb-item');
+
+            if (step.url === null) {
+                li.classList.add('active');
+                li.setAttribute('aria-current', 'page');
+                li.textContent = step.name;
+            } else {
+                const a = document.createElement('a');
+                a.href = step.url;
+                a.textContent = step.name;
+                li.appendChild(a);
+            }
+            list.appendChild(li);
+        });
+    </script>
+
+</body>
+</html>

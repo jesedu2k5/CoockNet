@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Búsqueda de Recetas - CookNet</title>
+    <link rel="stylesheet" href="styles.css"> <style>
+        /* Estilos específicos para la barra de búsqueda avanzada */
+        .search-panel {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            margin-bottom: 30px;
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            align-items: end;
+        }
+        .form-group { display: flex; flex-direction: column; flex: 1; min-width: 200px; }
+        .form-group label { margin-bottom: 5px; font-weight: bold; color: var(--primary-color); font-size: 0.9rem; }
+        .form-control { padding: 10px; border: 1px solid #ccc; border-radius: 5px; }
+        
+        .btn-search {
+            padding: 10px 25px;
+            background-color: var(--accent-color);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-weight: bold;
+            cursor: pointer;
+            height: 40px; /* Para alinear con los inputs */
+        }
+        .btn-search:hover { background-color: #d35400; }
+
+        /* Estilos embebidos para que funcione si no tienes el styles.css externo aun */
+        :root { --primary-color: #2c3e50; --accent-color: #e67e22; --text-white: #ffffff; --nav-height: 60px; }
+        body { margin: 0; font-family: 'Segoe UI', sans-serif; background-color: #f4f4f4; padding-top: var(--nav-height); }
+        .navbar { background-color: var(--primary-color); height: var(--nav-height); width: 100%; position: fixed; top: 0; left: 0; z-index: 1000; display: flex; justify-content: space-between; align-items: center; padding: 0 2rem; box-sizing: border-box; }
+        .navbar-logo { color: var(--text-white); font-weight: bold; text-decoration: none; font-size: 1.5rem; }
+        .navbar-logo span { color: var(--accent-color); }
+        .nav-menu { list-style: none; display: flex; padding: 0; margin: 0; }
+        .nav-link { color: var(--text-white); text-decoration: none; margin-left: 20px; }
+        .main-container { padding: 2rem; max-width: 1200px; margin: 0 auto; }
+        .recipes-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
+        .recipe-card { background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1); border: 1px solid #ddd; display: flex; flex-direction: column; text-align: center;}
+        .card-img-placeholder { height: 150px; background-color: #ecf0f1; display: flex; align-items: center; justify-content: center; font-size: 3rem; }
+        .card-body { padding: 15px; flex-grow: 1; display: flex; flex-direction: column; }
+        .btn-card { display: block; background-color: var(--primary-color); color: white; padding: 10px; margin-top: 15px; border-radius: 5px; text-decoration: none; }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar">
+        <a href="index.html" class="navbar-logo">Cook<span>Net</span></a>
+        <ul class="nav-menu">
+            <li><a href="index.html" class="nav-link">Inicio</a></li>
+            <li><a href="recetas.html" class="nav-link" style="color: var(--accent-color);">Recetas</a></li>
+            <li><a href="login.html" class="nav-link">Ingresar</a></li>
+        </ul>
+    </nav>
+
+    <main class="main-container">
+        <h1>Encuentra tu próxima comida</h1>
+
+        <div class="search-panel">
+            <div class="form-group" style="flex: 2;">
+                <label for="searchQuery">¿Qué se te antoja hoy?</label>
+                <input type="text" id="searchQuery" class="form-control" placeholder="Ej. Ensalada, Chocolate, Tacos..." required> </div>
+
+            <div class="form-group">
+                <label for="filterCategory">Categoría</label>
+                <select id="filterCategory" class="form-control">
+                    <option value="all">Todas</option>
+                    <option value="desayunos">Desayunos</option>
+                    <option value="comidas">Comidas</option>
+                    <option value="cenas">Cenas</option>
+                    <option value="postres">Postres</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="filterDifficulty">Dificultad</label>
+                <select id="filterDifficulty" class="form-control">
+                    <option value="all">Cualquiera</option>
+                    <option value="facil">Fácil</option>
+                    <option value="media">Media</option>
+                    <option value="dificil">Difícil</option>
+                </select>
+            </div>
+
+            <button onclick="performSearch()" class="btn-search">Buscar</button>
+        </div>
+
+        <div id="resultsGrid" class="recipes-grid">
+            </div>
+        <p id="noResults" style="display:none; text-align:center; color: #666;">No encontramos recetas con esos filtros. ¡Intenta otra cosa!</p>
+    </main>
+
+    <script src="api.js"></script>
+    <script>
+        // Función para renderizar tarjetas
+        function renderRecipes(recipes) {
+            const grid = document.getElementById('resultsGrid');
+            const noRes = document.getElementById('noResults');
+            grid.innerHTML = '';
+
+            if (recipes.length === 0) {
+                noRes.style.display = 'block';
+                return;
+            }
+            noRes.style.display = 'none';
+
+            recipes.forEach(recipe => {
+                const card = `
+                    <div class="recipe-card">
+                        <div class="card-img-placeholder">${recipe.image}</div>
+                        <div class="card-body">
+                            <h3 style="margin: 0 0 10px; color: #2c3e50;">${recipe.title}</h3>
+                            <p style="font-size: 0.9rem; color: #666;">${recipe.desc}</p>
+                            <small>⏱️ ${recipe.time} min | 📊 ${recipe.difficulty}</small>
+                            <a href="${recipe.url}" class="btn-card">Ver Receta</a>
+                        </div>
+                    </div>
+                `;
+                grid.innerHTML += card;
+            });
+        }
+
+        // Lógica de Búsqueda
+        function performSearch() {
+            // 1. Obtener valores del DOM
+            const query = document.getElementById('searchQuery').value;
+            const category = document.getElementById('filterCategory').value;
+            const difficulty = document.getElementById('filterDifficulty').value;
+
+            // 2. Llamar a la API Simulada (Actividad 1)
+            const results = searchApi({ query, category, difficulty });
+
+            // 3. Mostrar resultados
+            renderRecipes(results);
+        }
+
+        // Carga inicial (Traer todo)
+        document.addEventListener('DOMContentLoaded', performSearch);
+    </script>
+
+</body>
+</html>

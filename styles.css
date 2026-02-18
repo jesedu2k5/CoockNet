@@ -1,0 +1,131 @@
+        /* --- ESTILOS BASE Y VARIABLES --- */
+        :root {
+            --primary-color: #2c3e50; /* Oscuro para contraste */
+            --accent-color: #e67e22; /* Naranja cocina */
+            --text-white: #ffffff;
+            --nav-height: 60px;
+        }
+
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            padding-top: var(--nav-height); /* Evita que el contenido quede oculto bajo el menú */
+        }
+
+        /* --- 1. MENÚ PERSISTENTE (Fixed) --- */
+        .navbar {
+            background-color: var(--primary-color);
+            height: var(--nav-height);
+            width: 100%;
+            position: fixed; /* Esto lo hace PERSISTENTE */
+            top: 0;
+            left: 0;
+            z-index: 1000; /* Asegura que flote sobre todo */
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 2rem;
+            box-sizing: border-box;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+
+        /* LOGO */
+        .navbar-logo {
+            color: var(--text-white);
+            font-size: 1.5rem;
+            font-weight: bold;
+            text-decoration: none;
+            letter-spacing: 1px;
+        }
+
+        .navbar-logo span { color: var(--accent-color); }
+
+        /* --- NAVEGACIÓN CLARA --- */
+        .nav-menu {
+            display: flex;
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            align-items: center;
+        }
+
+        .nav-item { margin-left: 1.5rem; position: relative; }
+
+        .nav-link {
+            color: var(--text-white);
+            text-decoration: none;
+            font-size: 1rem;
+            transition: color 0.3s;
+        }
+
+        .nav-link:hover { color: var(--accent-color); }
+
+        /* --- SUBMENÚS (Dropdown) --- */
+        .dropdown-menu {
+            display: none; /* Oculto por defecto */
+            position: absolute;
+            top: 100%;
+            left: 0;
+            background-color: #34495e;
+            min-width: 150px;
+            list-style: none;
+            padding: 10px 0;
+            border-radius: 4px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .dropdown-menu li { padding: 5px 15px; }
+        
+        /* Mostrar submenú al pasar el mouse (Desktop) */
+        .nav-item:hover .dropdown-menu { display: block; }
+
+        /* --- DISEÑO RESPONSIVO (Mobile) --- */
+        .hamburger {
+            display: none;
+            cursor: pointer;
+        }
+
+        .bar {
+            display: block;
+            width: 25px;
+            height: 3px;
+            margin: 5px auto;
+            transition: all 0.3s ease-in-out;
+            background-color: var(--text-white);
+        }
+
+        /* Media Query para Tablet/Móvil */
+        @media (max-width: 768px) {
+            .hamburger { display: block; }
+
+            .hamburger.active .bar:nth-child(2) { opacity: 0; }
+            .hamburger.active .bar:nth-child(1) { transform: translateY(8px) rotate(45deg); }
+            .hamburger.active .bar:nth-child(3) { transform: translateY(-8px) rotate(-45deg); }
+
+            .nav-menu {
+                position: fixed;
+                left: -100%;
+                top: var(--nav-height);
+                flex-direction: column;
+                background-color: var(--primary-color);
+                width: 100%;
+                text-align: center;
+                transition: 0.3s;
+                padding-bottom: 20px;
+            }
+
+            .nav-menu.active { left: 0; }
+
+            .nav-item { margin: 1.5rem 0; width: 100%; }
+            
+            /* Ajuste de submenú en móvil */
+            .dropdown-menu {
+                position: static; /* Ya no flota, se integra en la lista */
+                background-color: transparent;
+                box-shadow: none;
+                text-align: center;
+                display: none; /* Se maneja con JS o hover */
+            }
+            
+            .nav-item:hover .dropdown-menu { display: block; background-color: rgba(0,0,0,0.1); }
+        }

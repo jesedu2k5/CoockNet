@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Registro - CookNet</title>
+    <link rel="stylesheet" href="styles.css"> <style>
+        .login-card { border-top: 5px solid #27ae60; max-width: 400px; margin: 80px auto; padding: 2rem; background: white; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); text-align: center; }
+        .btn-submit { width: 100%; padding: 12px; background-color: #27ae60; color: white; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <nav class="navbar"> <a href="index.html" class="navbar-logo">Cook<span>Net</span></a>
+    </nav>
+
+    <div class="login-card">
+        <h2>Crear Cuenta</h2>
+        <form id="registerForm">
+            <input type="email" id="regEmail" style="width:100%; padding:10px; margin-bottom:15px;" placeholder="Correo" required>
+            <input type="password" id="regPassword" style="width:100%; padding:10px; margin-bottom:15px;" placeholder="Contraseña" required>
+            <button type="submit" class="btn-submit">Registrarse</button>
+        </form>
+        <p style="margin-top:15px;">¿Ya tienes cuenta? <a href="login.html">Inicia sesión</a></p>
+    </div>
+
+    <script>
+        document.getElementById('registerForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const res = await fetch('/api/register', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    email: document.getElementById('regEmail').value, 
+                    password: document.getElementById('regPassword').value 
+                })
+            });
+            const data = await res.json();
+            if (data.success) {
+                alert("¡Registro exitoso!");
+                window.location.href = 'login.html';
+            } else { alert(data.message); }
+        });
+    </script>
+</body>
+</html>
