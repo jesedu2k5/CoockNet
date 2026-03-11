@@ -37,9 +37,9 @@
     <div class="login-card">
         <h2>Crear Cuenta</h2>
         <form id="registerForm">
-            <input type="email" id="regEmail" style="width:100%; padding:10px; margin-bottom:15px;" placeholder="Correo"
+            <input type="email" id="email" style="width:100%; padding:10px; margin-bottom:15px;" placeholder="Correo"
                 required>
-            <input type="password" id="regPassword" style="width:100%; padding:10px; margin-bottom:15px;"
+            <input type="password" id="password" style="width:100%; padding:10px; margin-bottom:15px;"
                 placeholder="Contraseña" required>
             <button type="submit" class="btn-submit">Registrarse</button>
         </form>
@@ -53,8 +53,8 @@
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    email: document.getElementById('regEmail').value,
-                    password: document.getElementById('regPassword').value
+                    email: document.getElementById('email').value,
+                    password: document.getElementById('password').value
                 })
             });
             const data = await res.json();

@@ -1,66 +1,80 @@
 // js/ui.js
 export const UIService = {
-    // Requerimiento: Manipulación del DOM (createElement, appendChild, innerHTML)
     renderRecetas(recetas, contenedor) {
         if (!contenedor) return;
-        contenedor.innerHTML = '';
+        contenedor.innerHTML = ''; 
 
-        if (recetas.length === 0) {
-            contenedor.innerHTML = '<p class="empty-msg">No hay recetas en la base de datos.</p>';
+        if (!recetas || recetas.length === 0) {
+            contenedor.innerHTML = '<div class="empty-msg">🥺 No hay recetas en la base de datos.</div>';
             return;
         }
 
+        const fragmento = document.createDocumentFragment();
+
         recetas.forEach(receta => {
             const card = document.createElement('div');
-            card.className = 'recipe-card';
+            card.className = 'recipe-card fade-in';
 
-            const imgPath = receta.imagen_url || 'https://via.placeholder.com/300x200?text=CookNet';
+            // ASIGNACIÓN SEGÚN TUS COLUMNAS REALES
+            const nombre = receta.nombre || 'Receta sin nombre';
+            const imagen = receta.imagen || 'https://via.placeholder.com/300x200?text=Sin+Imagen';
+            // Usamos ingredientes como descripción corta
+            const resumen = receta.ingredientes ? receta.ingredientes.substring(0, 60) + '...' : 'Sin ingredientes detallados';
+            const cat = receta.categoria || 'General';
 
             card.innerHTML = `
-                <img src="${imgPath}" alt="${receta.titulo}" style="width:100%; border-radius:10px; height:200px; object-fit:cover;">
-                <div class="card-body" style="padding:15px;">
-                    <h3 style="margin:10px 0;">${receta.titulo}</h3>
-                    <p style="color:#666; font-size:0.9rem;">${receta.descripcion}</p>
-                    <div class="meta" style="margin-top:15px; font-weight:bold; color:#e67e22;">
-                        <span>📂 ${receta.categoria}</span> | <span>⏱️ ${receta.tiempo || 0} min</span>
+                <div class="card-image">
+                    <img src="${imagen}" alt="${nombre}" style="width:100%; height:200px; object-fit:cover; border-radius:10px 10px 0 0;">
+                </div>
+                <div class="card-content" style="padding:15px;">
+                    <h3 style="margin:0 0 10px 0;">${nombre}</h3>
+                    <p style="color:#666; font-size:0.85rem; height:40px; overflow:hidden;">${resumen}</p>
+                    <div style="margin: 10px 0; font-size: 0.8rem; color: #27ae60; font-weight: bold;">
+                        🏷️ ${cat}
                     </div>
+                    <button class="btn-primary btn-ver-receta" style="width:100%; margin-top:10px; cursor:pointer; border:none; padding:10px; border-radius:5px;">📖 Ver Receta Completa</button>
                 </div>
             `;
-            contenedor.appendChild(card);
+
+            // Configurar el botón de detalles
+            card.querySelector('.btn-ver-receta').addEventListener('click', () => {
+                alert(`📖 ${nombre.toUpperCase()}\n\n🍎 INGREDIENTES:\n${receta.ingredientes}\n\n👨‍🍳 INSTRUCCIONES:\n${receta.instrucciones}`);
+            });
+
+            fragmento.appendChild(card);
         });
+
+        contenedor.appendChild(fragmento);
     },
 
-    // Requerimiento: Mensajes dinámicos en pantalla
-    mostrarMensaje(mensaje, tipo, contenedorPadre) {
-        // Eliminar alertas previas para no amontonar (Requerimiento: remove)
+    mostrarNotificacion(mensaje, tipo = 'exito', contenedorPadre = document.body) {
         const alertaPrevia = document.querySelector('.alerta-dinamica');
         if (alertaPrevia) alertaPrevia.remove();
 
         const div = document.createElement('div');
-        div.className = `alerta-dinamica alerta-${tipo}`;
+        div.className = `alerta-dinamica alerta-${tipo} fade-in`;
         div.textContent = mensaje;
 
-        // Estilos dinámicos según el tipo
         Object.assign(div.style, {
-            padding: '15px',
-            margin: '20px 0',
-            borderRadius: '8px',
-            textAlign: 'center',
-            fontWeight: 'bold',
-            color: 'white',
-            fontSize: '1rem',
-            boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
-            backgroundColor: tipo === 'exito' ? '#27ae60' : '#e74c3c'
+            position: 'fixed', bottom: '20px', right: '20px', padding: '15px 25px',
+            borderRadius: '8px', color: 'white', fontWeight: 'bold', zIndex: '1000',
+            backgroundColor: tipo === 'exito' ? '#27ae60' : '#e74c3c',
+            boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
         });
 
-        // Insertar al principio del formulario o contenedor (Requerimiento: prepend)
         contenedorPadre.prepend(div);
 
-        // Desvanecer y eliminar automáticamente después de 3.5 segundos
         setTimeout(() => {
             div.style.opacity = '0';
-            div.style.transition = 'opacity 0.5s ease';
             setTimeout(() => div.remove(), 500);
         }, 3000);
     }
 };
+
+export function debounce(func, wait) {
+    let timeout;
+    return (...args) => {
+        clearTimeout(timeout);
+        timeout = setTimeout(() => func.apply(this, args), wait);
+    };
+}

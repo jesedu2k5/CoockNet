@@ -1,76 +1,66 @@
 /**
- * ACTIVIDAD 1: Implementación de API de búsqueda (Simulada)
- * Tipo de API: REST (Simulación local con Array JSON)
- * Método: GET (Simulado mediante función searchRecipes)
- * Parámetros: query (string), category (string), difficulty (string)
+ * ACTIVIDAD 1: Implementación de API de búsqueda (Conectada a MySQL)
+ * Tipo de API: REST
+ * Método: GET 
+ * Ruta: http://localhost:3000/api/recetas
  */
 
-const MOCK_DB = [
-    {
-        id: 1,
-        title: "Ensalada César",
-        category: "cenas",
-        difficulty: "facil",
-        time: 15,
-        image: "🥗",
-        desc: "La receta original de Tijuana. Fresca y con mucho parmesano.",
-        url: "ensalada.html"
-    },
-    {
-        id: 2,
-        title: "Tacos al Pastor",
-        category: "comidas",
-        difficulty: "media",
-        time: 45,
-        image: "🌮",
-        desc: "Carne marinada con achiote y piña. ¡Clásico mexicano!",
-        url: "fail.html"
-    },
-    {
-        id: 3,
-        title: "Pasta Alfredo",
-        category: "comidas",
-        difficulty: "facil",
-        time: 20,
-        image: "🍝",
-        desc: "Salsa cremosa blanca ideal para una cena rápida.",
-        url: "fail.html"
-    },
-    {
-        id: 4,
-        title: "Brownies Fudgy",
-        category: "postres",
-        difficulty: "media",
-        time: 60,
-        image: "🍫",
-        desc: "Chocolate intenso con nuez. Centro suave.",
-        url: "fail.html"
-    },
-    {
-        id: 5,
-        title: "Hot Cakes de Avena",
-        category: "desayunos",
-        difficulty: "facil",
-        time: 15,
-        image: "🥞",
-        desc: "Opción saludable y llena de energía para la mañana.",
-        url: "fail.html"
-    }
-];
-
-// Función que simula el Endpoint de Búsqueda
-function searchApi(params) {
-    console.log("Consultando API con parámetros:", params); // Evidencia de consola
-    
-    return MOCK_DB.filter(recipe => {
-        // 1. Filtro de Texto (Búsqueda Simple)
-        const matchText = recipe.title.toLowerCase().includes(params.query.toLowerCase()) || 
-                          recipe.desc.toLowerCase().includes(params.query.toLowerCase());
+export async function searchRecipes(query = '', category = '', difficulty = '') {
+    try {
+        // 1. Hacemos la petición real a tu servidor backend
+        const response = await fetch('http://localhost:3000/api/recetas');
         
-        // 2. Filtros Avanzados (Categoría y Dificultad)
-        const matchCategory = params.category === "all" || recipe.category === params.category;
-        const matchDifficulty = params.difficulty === "all" || recipe.difficulty === params.difficulty;
+        if (!response.ok) {
+            throw new Error('Error al obtener las recetas del servidor');
+        }
 
-        return matchText && matchCategory && matchDifficulty;
-    });
+        // 2. Convertimos la respuesta a JSON
+        const recetasBD = await response.json();
+
+        // 3. Formateamos los datos para que tu UI los entienda perfectamente
+        // y arreglamos la ruta de las imágenes
+        let resultados = recetasBD.map(receta => {
+            return {
+                id: receta.id,
+                // Mapeamos los nombres por si tu UI usa los nombres en inglés o español
+                nombre: receta.nombre, 
+                title: receta.nombre, 
+                
+                ingredientes: receta.ingredientes,
+                instrucciones: receta.instrucciones,
+                
+                categoria: receta.categoria,
+                category: receta.categoria, 
+                
+                // ⚠️ ARREGLO DE IMAGEN: Le pegamos el "http://localhost:3000" a la ruta
+                // Si la receta no tiene imagen, pone una por defecto
+                imagen: receta.imagen ? `http://localhost:3000${receta.imagen}` : 'https://via.placeholder.com/300x200?text=Cocina+Segura',
+                image: receta.imagen ? `http://localhost:3000${receta.imagen}` : 'https://via.placeholder.com/300x200?text=Cocina+Segura',
+                
+                dificultad: 'Media', // Valor por defecto ya que tu BD no tiene columna dificultad
+                difficulty: 'Medium'
+            };
+        });
+
+        // 4. Aplicamos los filtros de búsqueda que ya tenías programados
+        if (query) {
+            const lowerQuery = query.toLowerCase();
+            resultados = resultados.filter(r => 
+                (r.nombre && r.nombre.toLowerCase().includes(lowerQuery)) || 
+                (r.ingredientes && r.ingredientes.toLowerCase().includes(lowerQuery))
+            );
+        }
+
+        if (category && category !== 'Todas' && category !== 'All' && category !== '') {
+            resultados = resultados.filter(r => r.categoria === category);
+        }
+
+        // Devolvemos las recetas ya filtradas y listas para pintarse en el HTML
+        return resultados;
+
+    } catch (error) {
+        console.error("❌ Error en searchRecipes:", error);
+        // Si el servidor está apagado o falla, devolvemos un arreglo vacío para no romper la página
+        return []; 
+    }
 }
