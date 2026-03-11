@@ -1,11 +1,14 @@
-// Manejo de persistencia en LocalStorage
+// js/data.js
 export const DataService = {
-    save(recetas) {
-        localStorage.setItem('safecook_recetas', JSON.stringify(recetas));
+    // Guarda el borrador (Requerimiento de persistencia)
+    saveDraft(datos) {
+        sessionStorage.setItem('recipe_draft', JSON.stringify(datos));
     },
-
-    get() {
-        const data = localStorage.getItem('safecook_recetas');
-        return data ? JSON.parse(data) : [];
+    getDraft() {
+        const draft = sessionStorage.getItem('recipe_draft');
+        return draft ? JSON.parse(draft) : null;
+    },
+    clearDraft() {
+        sessionStorage.removeItem('recipe_draft');
     }
 };

@@ -324,3 +324,74 @@
                 padding: 15px;
             }
         }
+
+        /* --- ANIMACIONES Y TRANSICIONES (Requerimiento 2do Parcial) --- */
+
+        /* 1. Entrada suave para las tarjetas al cargar */
+        @keyframes fadeInCard {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .recipe-card {
+            animation: fadeInCard 0.6s ease forwards;
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            /* Transición suave */
+            cursor: pointer;
+        }
+
+        /* 2. Efecto Hover (Evento del Mouse) */
+        .recipe-card:hover {
+            transform: translateY(-10px) scale(1.02);
+            /* Zoom y elevación */
+            box-shadow: 0 14px 28px rgba(0, 0, 0, 0.15), 0 10px 10px rgba(0, 0, 0, 0.12);
+        }
+
+        /* 3. Animación para el botón "Ver Preparación" */
+        .btn-ver {
+            transition: background-color 0.3s, transform 0.2s;
+        }
+
+        .btn-ver:active {
+            transform: scale(0.95);
+            /* Efecto de pulsación al hacer clic */
+        }
+
+        /* 4. Clase para borrar con desvanecimiento (Delegación de eventos) */
+        .fade-out {
+            opacity: 0;
+            transform: scale(0.9);
+            transition: all 0.5s ease;
+            pointer-events: none;
+        }
+
+        /* --- MEJORAS DE INTERFAZ DE USUARIO --- */
+
+        /* Estilo para los Badges (Tiempo/Categoría) */
+        .badge {
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-weight: 600;
+            display: inline-block;
+        }
+
+        /* Scrollbar personalizado para que se vea profesional */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #2c3e50;
+            border-radius: 10px;
+        }
