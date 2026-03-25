@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mis Sesiones - CoockNet</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .container { max-width: 700px; margin: 40px auto; padding: 0 20px; }
+        h1 { font-size: 1.5rem; margin-bottom: 20px; }
+        .session-card {
+            background: white;
+            border: 1px solid #eee;
+            border-radius: 10px;
+            padding: 16px 20px;
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+        }
+        .session-info { font-size: 0.9rem; color: #444; }
+        .session-info strong { display: block; font-size: 1rem; color: #2c3e50; margin-bottom: 4px; }
+        .session-info span { color: #888; font-size: 0.8rem; }
+        .badge-actual {
+            font-size: 11px;
+            background: #eafaf1;
+            color: #27ae60;
+            padding: 2px 8px;
+            border-radius: 20px;
+            margin-left: 8px;
+            font-weight: bold;
+        }
+        .btn-cerrar {
+            background: #e74c3c;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.85rem;
+        }
+        .btn-cerrar:hover { background: #c0392b; }
+        .btn-cerrar:disabled { background: #ccc; cursor: not-allowed; }
+        #mensaje { text-align: center; padding: 10px; border-radius: 6px; display: none; margin-bottom: 16px; }
+        .exito { background: #eafaf1; color: #27ae60; }
+        .error { background: #fdecea; color: #e74c3c; }
+        .empty { text-align: center; color: #888; padding: 40px; font-style: italic; }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <a href="index.html" class="navbar-logo">Cook<span>Net</span></a>
+    </nav>
+
+    <div class="container">
+        <h1>Mis sesiones activas</h1>
+        <div id="mensaje"></div>
+        <div id="listaSesiones">Cargando...</div>
+    </div>
+
+    <script>
+        const token = localStorage.getItem('token');
+        if (!token) window.location.href = 'login.html';
+
+        const lista = document.getElementById('listaSesiones');
+        const mensaje = document.getElementById('mensaje');
+
+        function mostrarMensaje(texto, tipo) {
+            mensaje.textContent = texto;
+            mensaje.className = tipo;
+            mensaje.style.display = 'block';
+            setTimeout(() => mensaje.style.display = 'none', 3000);
+        }
+
+        async function cargarSesiones() {
+            try {
+                const res = await fetch('/api/auth/sessions', {
+                    headers: { 'Authorization': 'Bearer ' + token }
+                });
+                const sesiones = await res.json();
+
+                if (!sesiones.length) {
+                    lista.innerHTML = '<p class="empty">No hay sesiones activas.</p>';
+                    return;
+                }
+
+                lista.innerHTML = sesiones.map((s, i) => `
+                    <div class="session-card" id="session-${s.id}">
+                        <div class="session-info">
+                            <strong>
+                                ${s.dispositivo}
+                                ${i === 0 ? '<span class="badge-actual">Sesión actual</span>' : ''}
+                            </strong>
+                            <div>IP: ${s.ip}</div>
+                            <span>Inicio: ${new Date(s.fecha).toLocaleString('es-MX')}</span>
+                        </div>
+                        <button class="btn-cerrar" onclick="cerrarSesion(${s.id}, this)" 
+                            ${i === 0 ? 'disabled title="Es tu sesión actual"' : ''}>
+                            ${i === 0 ? 'Actual' : 'Cerrar'}
+                        </button>
+                    </div>
+                `).join('');
+
+            } catch (error) {
+                lista.innerHTML = '<p class="empty">Error al cargar sesiones.</p>';
+            }
+        }
+
+        async function cerrarSesion(id, btn) {
+            btn.disabled = true;
+            btn.textContent = 'Cerrando...';
+
+            try {
+                const res = await fetch(`/api/auth/sessions/${id}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': 'Bearer ' + token }
+                });
+                const data = await res.json();
+
+                if (res.ok) {
+                    document.getElementById(`session-${id}`).remove();
+                    mostrarMensaje('Sesión cerrada correctamente', 'exito');
+                } else {
+                    throw new Error(data.error);
+                }
+            } catch (error) {
+                btn.disabled = false;
+                btn.textContent = 'Cerrar';
+                mostrarMensaje(error.message || 'Error al cerrar sesión', 'error');
+            }
+        }
+
+        cargarSesiones();
+    </script>
+</body>
+</html>

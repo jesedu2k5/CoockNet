@@ -1,5 +1,5 @@
 // js/api.js
-const API_URL = 'http://localhost:3000/api/recetas';
+const API_URL = 'http://localhost:3000/api/recipes';
 
 export async function obtenerRecetas() {
     try {

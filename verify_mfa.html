@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Verificación MFA - CoockNet</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .card {
+            max-width: 400px;
+            margin: 80px auto;
+            padding: 2rem;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            text-align: center;
+            border-top: 5px solid #2c3e50;
+        }
+        input {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-sizing: border-box;
+            font-size: 1.2rem;
+            text-align: center;
+            letter-spacing: 8px;
+        }
+        button {
+            width: 100%;
+            padding: 12px;
+            background: #2c3e50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        button:hover { background: #e67e22; }
+        .mensaje { margin-top: 15px; padding: 10px; border-radius: 5px; display: none; }
+        .error { background: #fdecea; color: #e74c3c; }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <a href="index.html" class="navbar-logo">Cook<span>Net</span></a>
+    </nav>
+
+    <div class="card">
+        <h2>Verificación de dos pasos</h2>
+        <p style="color:#888; font-size:0.9rem; margin-bottom:20px;">
+            Ingresa el código de 6 dígitos que fue enviado.
+        </p>
+        <input type="text" id="code" maxlength="6" placeholder="000000">
+        <button onclick="verificar()">Verificar</button>
+        <div id="mensaje" class="mensaje error"></div>
+    </div>
+
+    <script>
+        const userId = localStorage.getItem('mfa_user_id');
+        if (!userId) window.location.href = 'login.html';
+
+        async function verificar() {
+            const code = document.getElementById('code').value.trim();
+            const msg = document.getElementById('mensaje');
+
+            if (code.length !== 6) {
+                msg.textContent = 'El código debe tener 6 dígitos.';
+                msg.style.display = 'block';
+                return;
+            }
+
+            const res = await fetch('/api/auth/verify-mfa', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ userId: parseInt(userId), code })
+            });
+
+            const result = await res.json();
+
+            if (result.token) {
+                localStorage.removeItem('mfa_user_id');
+                localStorage.setItem('token', result.token);
+                localStorage.setItem('refreshToken', result.refreshToken);
+                localStorage.setItem('user', JSON.stringify(result.user));
+                window.location.href = result.user.role_id === 1 ? 'admin.html' : 'index.html';
+            } else {
+                msg.textContent = result.error || 'Código incorrecto.';
+                msg.style.display = 'block';
+            }
+        }
+    </script>
+</body>
+</html>

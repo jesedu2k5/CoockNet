@@ -74,40 +74,50 @@
     </div>
 
     <script>
-        // Manejo de Login Tradicional
-        document.getElementById('loginForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const captcha = grecaptcha.getResponse();
-            if (!captcha) return alert("Por favor, marca el captcha.");
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const captcha = grecaptcha.getResponse();
+        if (!captcha) return alert("Por favor, marca el captcha.");
 
-            const res = await fetch('/api/login', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    email: document.getElementById('email').value,
-                    password: document.getElementById('password').value,
-                    captchaResponse: captcha
-                })
-            });
-            const result = await res.json();
-            if (result.success) {
-                window.location.href = result.role === 'admin' ? 'admin.html' : 'index.html';
-            } else { alert(result.message); }
+        const res = await fetch('/api/auth/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                email: document.getElementById('email').value,
+                password: document.getElementById('password').value,
+                captchaResponse: captcha
+            })
         });
 
-        // Manejo de Login Google
-        async function handleCredentialResponse(response) {
-            const res = await fetch('/api/google-login', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ token: response.credential })
-            });
-            const result = await res.json();
-            if (result.success) {
-                window.location.href = 'index.html';
-            }
+        const result = await res.json();
+
+        if (result.mfa) {
+            // Guardar userId temporalmente y redirigir a verificación MFA
+            localStorage.setItem('mfa_user_id', result.userId);
+            window.location.href = 'verify_mfa.html';
+        } else if (result.token) {
+            localStorage.setItem('token', result.token);
+            localStorage.setItem('refreshToken', result.refreshToken);
+            localStorage.setItem('user', JSON.stringify(result.user));
+            window.location.href = result.user.role_id === 1 ? 'admin.html' : 'index.html';
+        } else {
+            alert(result.error || 'Credenciales incorrectas');
         }
-    </script>
+    });
+
+    async function handleCredentialResponse(response) {
+        const res = await fetch('/api/google-login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ token: response.credential })
+        });
+        const result = await res.json();
+        if (result.token) {
+            localStorage.setItem('token', result.token);
+            window.location.href = 'index.html';
+        }
+    }
+</script>
 </body>
 
 </html>

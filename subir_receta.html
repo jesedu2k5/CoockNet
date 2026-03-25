@@ -103,49 +103,58 @@
     </div>
 
     <script>
-        const form = document.getElementById('recetaForm');
-        const msgExito = document.getElementById('mensajeExito');
-        const msgError = document.getElementById('mensajeError');
+    const form = document.getElementById('recetaForm');
+    const msgExito = document.getElementById('mensajeExito');
+    const msgError = document.getElementById('mensajeError');
 
-        form.addEventListener('submit', async (e) => {
-            e.preventDefault(); // Evita que la página se recargue
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
 
-            // Ocultar mensajes previos
-            msgExito.style.display = 'none';
-            msgError.style.display = 'none';
+        msgExito.style.display = 'none';
+        msgError.style.display = 'none';
 
-            // Crear FormData con los datos del formulario
-            const formData = new FormData(form);
+        const token = localStorage.getItem('token');
+        if (!token) {
+            msgError.innerText = 'No has iniciado sesión. Redirigiendo...';
+            msgError.style.display = 'block';
+            setTimeout(() => window.location.href = 'index.html', 2000);
+            return;
+        }
 
-            try {
-                const response = await fetch('http://localhost:3000/api/recetas', {
-                    method: 'POST',
-                    body: formData
-                });
+        // Mapear campos del formulario a lo que espera el backend
+        const formData = new FormData();
+        formData.append('title',       document.getElementById('nombre').value);
+        formData.append('description', document.getElementById('categoria').value);
+        formData.append('ingredients', document.getElementById('ingredientes').value);
+        formData.append('steps',       document.getElementById('instrucciones').value);
+        formData.append('image',       document.getElementById('imagen').files[0]);
 
-                const data = await response.json();
+        try {
+            const response = await fetch('http://localhost:3000/api/recipes', {
+                method: 'POST',
+                headers: {
+                    'Authorization': 'Bearer ' + token
+                },
+                body: formData
+            });
 
-                if (data.success) {
-                    // MENSJE DE ÉXITO
-                    msgExito.innerText = data.message;
-                    msgExito.style.display = 'block';
-                    form.reset(); // Limpiar formulario
-                    
-                    // Opcional: Redirigir a la página principal después de 2 segundos
-                    setTimeout(() => {
-                         window.location.href = 'index.html'; 
-                    }, 2000);
-                } else {
-                    // MENSAJE DE ERROR DEL SERVIDOR
-                    throw new Error(data.message);
-                }
+            const data = await response.json();
 
-            } catch (error) {
-                console.error('Error:', error);
-                msgError.innerText = error.message || 'Ocurrió un error al conectar con el servidor.';
-                msgError.style.display = 'block';
+            if (response.ok) {
+                msgExito.innerText = '¡Receta subida correctamente!';
+                msgExito.style.display = 'block';
+                form.reset();
+                setTimeout(() => window.location.href = 'index.html', 2000);
+            } else {
+                throw new Error(data.error || 'Error al subir la receta');
             }
-        });
-    </script>
+
+        } catch (error) {
+            console.error('Error:', error);
+            msgError.innerText = error.message || 'Ocurrió un error al conectar con el servidor.';
+            msgError.style.display = 'block';
+        }
+    });
+</script>
 </body>
 </html>
