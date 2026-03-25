@@ -16,3 +16,25 @@
     transition: transform 0.2s cubic-bezier(0.23, 1, 0.32, 1);
     display: inline-block;
 }
+/* Animación de salida para eliminación */
+.fade-out {
+    opacity: 0;
+    transform: scale(0.9);
+    transition: all 0.5s ease;
+}
+
+/* Estructura básica del carrusel */
+.carousel-container {
+    overflow: hidden;
+    width: 100%;
+    position: relative;
+}
+
+.carousel-track {
+    display: flex;
+    will-change: transform; /* Optimización de rendimiento */
+}
+
+.slide {
+    min-width: 100%;
+}

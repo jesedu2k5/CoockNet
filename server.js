@@ -14,7 +14,8 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
-app.use(express.static(__dirname));
+
+// COMENTADO: app.use(express.static(__dirname));  <-- Se movió al final para evitar errores
 
 // Crear carpeta uploads si no existe
 if (!fs.existsSync('./uploads')) {
@@ -97,51 +98,33 @@ app.put('/api/recetas/:id', upload.single('imagen'), (req, res) => {
     });
 });
 
-// ------------------------------------
-// AUTH: Registro de Usuarios (Solo Email y Password)
-// ------------------------------------
+// AUTH: Registro de Usuarios
 app.post('/api/register', async (req, res) => {
-    // 1. Ya no pedimos username, solo email y password
     const { email, password } = req.body;
-
-    // 2. Validamos solo esos dos campos
-    if (!email || !password) {
-        return res.status(400).json({ success: false, message: "El correo y la contraseña son obligatorios" });
-    }
+    if (!email || !password) return res.status(400).json({ success: false, message: "Campos obligatorios" });
 
     try {
         const hash = await bcrypt.hash(password, 10);
-        // 3. Insertamos solo email, password y role
         const sql = "INSERT INTO usuarios (email, password, role) VALUES (?, ?, ?)";
-        
-        db.query(sql, [email, hash, 'usuario'], (err, result) => {
-            if (err) {
-                if (err.code === 'ER_DUP_ENTRY') {
-                    return res.status(400).json({ success: false, message: "El correo ya está registrado" });
-                }
-                console.error("Error en DB al registrar:", err);
-                return res.status(500).json({ success: false, message: "Error al guardar en BD" });
-            }
-            res.json({ success: true, message: "Usuario registrado con éxito" });
+        db.query(sql, [email, hash, 'usuario'], (err) => {
+            if (err) return res.status(400).json({ success: false, message: "Error o duplicado" });
+            res.json({ success: true, message: "Registrado" });
         });
-    } catch (error) {
-        console.error("Error generando Hash de contraseña:", error);
-        res.status(500).json({ success: false, message: "Error interno del servidor" });
-    }
+    } catch (error) { res.status(500).json({ success: false }); }
 });
 
-// ------------------------------------
-// AUTH: Login de Usuarios
-// ------------------------------------
+// AUTH: Login
 app.post('/api/login', (req, res) => {
     const { email, password } = req.body;
     db.query("SELECT * FROM usuarios WHERE email = ?", [email], async (err, results) => {
         if (err || results.length === 0) return res.json({ success: false });
-        
         const match = await bcrypt.compare(password, results[0].password);
         res.json({ success: match, role: results[0].role || 'usuario' });
     });
 });
+
+// --- ESTÁTICOS AL FINAL ---
+app.use(express.static(__dirname));
 
 app.listen(port, () => {
     console.log(`🚀 Servidor corriendo en http://localhost:${port}`);
